@@ -1,0 +1,38 @@
+{
+  "name": "nftmkt",
+  "version": "0.0.1",
+  "description": "NFTMKT is a NFT marketplace designed for Juicebox Projects.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbx-protocol/NFTMKT.git"
+  },
+  "keywords": [
+    "solidity",
+    "juicebox",
+    "nft",
+    "marketplace"
+  ],
+  "author": "nnnnicholas",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jbx-protocol/NFTMKT/issues"
+  },
+  "homepage": "https://github.com/jbx-protocol/NFTMKT#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.5",
+    "hardhat": "^2.6.1"
+  },
+  "dependencies": {
+    "@chainlink/contracts": "^0.2.1",
+    "@jbox/sol": "^1.0.2",
+    "@openzeppelin/contracts": "^4.3.1"
+  }
+}
