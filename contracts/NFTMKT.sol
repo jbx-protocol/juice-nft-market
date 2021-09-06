@@ -2,7 +2,18 @@
 pragma solidity ^0.8.6;
 
 import "hardhat/console.sol";
-import "@jbox/sol/contracts/abstract/JuiceboxProject.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@jbox/sol/contracts/interfaces/ITerminalDirectory.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@paulrberg/contracts/math/PRBMath.sol";
+
+struct SaleRecipients {
+    bool preferUnstaked;
+    uint16 percent;
+    address payable beneficiary;
+    string memo;
+    uint56 projectId;
+}
 
 /**
  * @title NFTMKT
@@ -10,11 +21,23 @@ import "@jbox/sol/contracts/abstract/JuiceboxProject.sol";
  * @notice An NFT marketplace built for Juicebox projects.
  * @dev Accepts ERC721.
  */
-contract NFTMKT is JuiceboxProject, IERC721Receiver {
+contract NFTMKT is IERC721Receiver {
     /**
     @dev The direct deposit terminals.
     */
     ITerminalDirectory public immutable terminalDirectory;
+
+    // TODO: Reuse the same saleRecipients by using hashes of saleRecipients as keys in a mapping instead
+    // All sale recipients for each project ID's configurations.
+
+    /**
+     * @param address Address submitting the NFT
+     * @param address NFT 721 address
+     * @param uint TokenID
+     * @return An array of SaleRecipients.
+     */
+    mapping(address => mapping(address => mapping(uint256 => SaleRecipients[])))
+        private _recipientsOf;
 
     /**
      * @notice Emitted when an NFT is successfully submitted to NFTMKT.
@@ -25,7 +48,8 @@ contract NFTMKT is JuiceboxProject, IERC721Receiver {
     event Submitted(
         address indexed _from,
         address indexed _contract,
-        address indexed _tokenId
+        address indexed _tokenId,
+        SaleRecipients[] _recipients
     );
     /**
      * @notice Emitted when an NFT is successfully withdrawn from NFTMKT.
@@ -58,33 +82,115 @@ contract NFTMKT is JuiceboxProject, IERC721Receiver {
      * @param _projectID The project's ID in HEX
      * @param terminalDirectory A directory of a project's current Juicebox terminal to receive payments in.
      */
-    constructor(uint256 _projectID, ITerminalDirectory _terminalDirectory)
-        JuiceboxProject(_projectID, _terminalDirectory)
-    {
-        
+    constructor(ITerminalDirectory _terminalDirectory) {
+        terminalDirectory = _terminalDirectory;
     }
 
     /**
      * @notice Submit NFT to the NFTMKT and define who will receive project Project tokens resulting from a sale.
      * @dev `payoutMods` are validated to add up to no more than 100%.
      * @param _nft The NFT being submitted.
-     * @param payoutMods The mods that will receive project token payouts.
+     * @param payoutMods The recipients that will receive project token payouts.
      **/
     function submit(
         address _contract,
         uint256 _tokenId,
-        PayoutMod[] payoutMods
+        SaleRecipients[] _recipients
     ) {
-        emit Submitted(msg.sender, _contract, _tokenId);
+        // either transfer NFT to NFTMKT OR call `approve()` on the 721 contract (do this in frontend possibly)
+        // validate that recipients add up to no more than 100%.
+
+        // Must be at least 1 recipient.
+        require(_recipients.length > 0, "ModStore::setPayoutMods: NO_OP"); //TODO Update recipients language
+
+        // Add up all the percents to make sure they cumulative are under 100%.
+        uint256 _saleRecipientsPercentTotal = 0;
+
+        for (uint256 _i = 0; _i < _recipients.length; _i++) {
+            // The percent should be greater than 0.
+            require(
+                _recipients[_i].percent > 0,
+                "ModStore::setPayoutMods: BAD_MOD_PERCENT"
+            );
+
+            // Add to the total percents.
+            _saleRecipientsPercentTotal =
+                _saleRecipientsPercentTotal +
+                _recipients[_i].percent;
+
+            // The total percent should be less than 10000.
+            require(
+                _saleRecipientsPercentTotal <= 10000,
+                "ModStore::setPayoutMods: BAD_TOTAL_PERCENT"
+            );
+
+            // The beneficiary shouldn't both be the zero address.
+            require(
+                _recipients[_i].beneficiary != address(0),
+                "ModStore::setPayoutMods: ZERO_ADDRESS"
+            );
+        }
+
+        _recipientsOf[msg.sender][_contract][_tokenId] = _recipients;
+        emit Submitted(msg.sender, _contract, _tokenId, _recipients);
     }
 
     /**
      *
      */
-    function purchase(address _contractId, uint256 _tokenId) {
-        // must route funds received from buyer to the preconfigured Mods. Logic for this can be very similar to the _distributeToPayoutMods
+    function purchase(address _contract, uint256 _tokenId) external payable {
+        // must route funds received from buyer to the preconfigured recipients. Logic for this can be very similar to the _distributeToPayoutMods
         // see https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
-        // If PayoutMod points at a project, call _terminal.pay(), if it pays out to an address, just transfer  directly
+        // If SalesRecipients points at a project, call _terminal.pay(), if it pays out to an address, just transfer directly
+
+        uint256 _amount = msg.value;
+        address owner;
+
+        // Get a reference to the project's payout recipients.
+        SalesRecipients[] memory _recipients = _recipientsOf[owner][_contract][
+            _tokenId
+        ];
+        // Transfer between all recipients.
+        for (uint256 _i = 0; _i < _recipients.length; _i++) {
+            // Get a reference to the recipient being iterated on.
+            SalesRecipients memory _recipient = _recipients[_i];
+
+            // The amount to send towards recipients. Recipients percents are out of 10000.
+            uint256 _recipientCut = PRBMath.mulDiv(
+                _amount,
+                _recipient.percent,
+                10000
+            );
+
+            if (_recipientCut > 0) {
+                // Transfer ETH to the recipient.
+
+                if (_recipient.projectId > 0) {
+                    // Otherwise, if a project is specified, make a payment to it.
+
+                    // Get a reference to the Juicebox terminal being used.
+                    ITerminal _terminal = terminalDirectory.terminalOf(
+                        _recipient.projectId
+                    );
+
+                    // The project must have a terminal to send funds to.
+                    require(
+                        _terminal != ITerminal(address(0)),
+                        "TerminalV1::tap: BAD_MOD"
+                    );
+
+                    _terminal.pay{value: _recipientCut}(
+                        _recipient.projectId,
+                        _recipient.beneficiary,
+                        _recipient.memo,
+                        _recipient.preferUnstaked
+                    );
+                } else {
+                    // Otherwise, send the funds directly to the beneficiary.
+                    Address.sendValue(_recipient.beneficiary, _recipientCut);
+                }
+            }
+        }
     }
 
     /**
