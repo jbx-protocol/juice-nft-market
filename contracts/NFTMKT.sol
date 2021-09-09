@@ -12,7 +12,7 @@ struct SaleRecipients {
     uint16 percent;
     address payable beneficiary;
     string memo;
-    uint56 projectId;
+    uint256 projectId;
 }
 
 /**
@@ -37,7 +37,14 @@ contract NFTMKT is IERC721Receiver {
      * @return An array of SaleRecipients.
      */
     mapping(address => mapping(address => mapping(uint256 => SaleRecipients[])))
-        private _recipientsOf;
+        public recipientsOf;
+
+    /**
+     * @notice Stores each NFT's price
+     * @return The price in wei
+     */
+    //TODO Consider modularizing pricing strategies to support auctions, FOMO ramps, pricing tranches
+    mapping(address => mapping(address => uint256)) public prices;
 
     /**
      * @notice Emitted when an NFT is successfully submitted to NFTMKT.
@@ -79,7 +86,6 @@ contract NFTMKT is IERC721Receiver {
 
     /**
      * @notice Creates a NFTMKT for a Juicebox project.
-     * @param _projectID The project's ID in HEX
      * @param terminalDirectory A directory of a project's current Juicebox terminal to receive payments in.
      */
     constructor(ITerminalDirectory _terminalDirectory) {
@@ -93,10 +99,16 @@ contract NFTMKT is IERC721Receiver {
      * @param payoutMods The recipients that will receive project token payouts.
      **/
     function submit(
-        address _contract,
+        IERC721 _contract,
         uint256 _tokenId,
+        uint256 _price,
         SaleRecipients[] _recipients
-    ) {
+    ) external {
+        //
+        require(
+            _contract.getApproved(_tokenId) == address(this),
+            "NFTMKT is not authorized to transfer this NFT. Approve this contract to move this token."
+        );
         // either transfer NFT to NFTMKT OR call `approve()` on the 721 contract (do this in frontend possibly)
         // validate that recipients add up to no more than 100%.
 
@@ -131,33 +143,44 @@ contract NFTMKT is IERC721Receiver {
             );
         }
 
+        // All recipient's percents must total to 100%.
+        require(_saleRecipientsPercentTotal == 10000);
         _recipientsOf[msg.sender][_contract][_tokenId] = _recipients;
+
+        // Store the price
+        prices[_contract][_tokenId] = _price;
+
+        // Transfer ownership of NFT to to the contract
+        _contract.safeTransferFrom(msg.sender, address(this), _tokenId);
         emit Submitted(msg.sender, _contract, _tokenId, _recipients);
     }
 
     /**
      *
      */
-    function purchase(address _contract, uint256 _tokenId) external payable {
+    function purchase(IERC721 _contract, uint256 _tokenId) external payable {
         // must route funds received from buyer to the preconfigured recipients. Logic for this can be very similar to the _distributeToPayoutMods
         // see https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
         // If SalesRecipients points at a project, call _terminal.pay(), if it pays out to an address, just transfer directly
 
-        uint256 _amount = msg.value;
         address owner;
+
+        require(prices[_contract][_tokenId] == msg.value);
 
         // Get a reference to the project's payout recipients.
         SalesRecipients[] memory _recipients = _recipientsOf[owner][_contract][
             _tokenId
         ];
+        // TODO Consider holding ETH and executing payout distribution upon `distribute` external call. 
+        // TODO `distributeAll`
         // Transfer between all recipients.
         for (uint256 _i = 0; _i < _recipients.length; _i++) {
             // Get a reference to the recipient being iterated on.
             SalesRecipients memory _recipient = _recipients[_i];
 
-            // The amount to send towards recipients. Recipients percents are out of 10000.
+            // The amount to send to recipients. Recipients percents are out of 10000.
             uint256 _recipientCut = PRBMath.mulDiv(
-                _amount,
+                msg.value,
                 _recipient.percent,
                 10000
             );
@@ -191,7 +214,13 @@ contract NFTMKT is IERC721Receiver {
                 }
             }
         }
+        // TODO Consider adding destination parameter.
+        // Transfer NFT to buyer
+        _contract.safeTransferFrom(address(this), msg.sender, _tokenId);
+        //TODO emit transfer event
     }
+
+    //TODO implement withdraw and withdrawTo that call _withdraw
 
     /**
      * @notice Withdraw NFT from marketplace. Can only be called on a given NFT by the address that submit it.
@@ -199,7 +228,24 @@ contract NFTMKT is IERC721Receiver {
      * @param
      * @param
      */
-    function withdraw(address _contractId, uint256 _tokenId) public {
+    function withdraw(
+        IERC721 _contract,
+        uint256 _tokenId,
+        address destination
+    ) external {
+        // Check that contract holds this token
+        require(_contract.ownerOf(_tokenId) == address(this));
+
+        // Check that caller submitted the NFT
+        require(_recipientsOf[msg.sender][_contract][_tokenId].length > 0);
+
+        // Remove from recipientsOf
+        _recipientsOf[msg.sender][_contract][_tokenId] = [];
+
+        //TODO Maybe remove price from prices
+
+        // Transfer NFT from contract to caller.
+        _contract.safeTransferFrom(address(this), _destination, tokenId);
         emit Withdrawn(msg.sender, _contract, _tokenId);
     }
 
