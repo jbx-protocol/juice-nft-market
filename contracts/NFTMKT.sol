@@ -84,6 +84,7 @@ contract NFTMKT is IERC721Receiver {
         uint256 indexed _tokenId
     );
 
+
     /**
      * @notice Creates a NFTMKT for a Juicebox project.
      * @param terminalDirectory A directory of a project's current Juicebox terminal to receive payments in.
@@ -94,6 +95,7 @@ contract NFTMKT is IERC721Receiver {
 
     /**
      * @notice Submit NFT to the NFTMKT and define who will receive project Project tokens resulting from a sale.
+     * @dev Must call `approve` on the 721 contract before calling `submit` on NFTMKT
      * @dev `payoutMods` are validated to add up to no more than 100%.
      * @param _nft The NFT being submitted.
      * @param payoutMods The recipients that will receive project token payouts.
@@ -104,25 +106,23 @@ contract NFTMKT is IERC721Receiver {
         uint256 _price,
         SaleRecipients[] _recipients
     ) external {
-        //
         require(
             _contract.getApproved(_tokenId) == address(this),
             "NFTMKT is not authorized to transfer this NFT. Approve this contract to move this token."
         );
-        // either transfer NFT to NFTMKT OR call `approve()` on the 721 contract (do this in frontend possibly)
-        // validate that recipients add up to no more than 100%.
 
         // Must be at least 1 recipient.
-        require(_recipients.length > 0, "ModStore::setPayoutMods: NO_OP"); //TODO Update recipients language
+        require(_recipients.length > 0, "NFTMKT::submit: No recipients are specified. You must set at least one recipient to submit an NFT."); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
 
         // Add up all the percents to make sure they cumulative are under 100%.
         uint256 _saleRecipientsPercentTotal = 0;
 
+        // Validate that recipients add up to no more than 100%.
         for (uint256 _i = 0; _i < _recipients.length; _i++) {
             // The percent should be greater than 0.
             require(
                 _recipients[_i].percent > 0,
-                "ModStore::setPayoutMods: BAD_MOD_PERCENT"
+                "NFTMKT::submit: Sum of recipient percentages cannot equal 0. "
             );
 
             // Add to the total percents.
@@ -133,13 +133,13 @@ contract NFTMKT is IERC721Receiver {
             // The total percent should be less than 10000.
             require(
                 _saleRecipientsPercentTotal <= 10000,
-                "ModStore::setPayoutMods: BAD_TOTAL_PERCENT"
+                "NFTMKT::submit: Sum of recipient percentages cannot exceed 100%."
             );
 
             // The beneficiary shouldn't both be the zero address.
             require(
                 _recipients[_i].beneficiary != address(0),
-                "ModStore::setPayoutMods: ZERO_ADDRESS"
+                "NFTMKT::submit: Beneficiary may not be the 0 address."
             );
         }
 
@@ -199,7 +199,7 @@ contract NFTMKT is IERC721Receiver {
                     // The project must have a terminal to send funds to.
                     require(
                         _terminal != ITerminal(address(0)),
-                        "TerminalV1::tap: BAD_MOD"
+                        "Terminal::pay: Terminal address cannot be the 0 address."
                     );
 
                     _terminal.pay{value: _recipientCut}(
@@ -217,7 +217,7 @@ contract NFTMKT is IERC721Receiver {
         // TODO Consider adding destination parameter.
         // Transfer NFT to buyer
         _contract.safeTransferFrom(address(this), msg.sender, _tokenId);
-        //TODO emit transfer event
+        emit Purchased(address(this), msg.sender, _contract, _tokenId);
     }
 
     //TODO implement withdraw and withdrawTo that call _withdraw
