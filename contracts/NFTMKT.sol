@@ -3,6 +3,7 @@ pragma solidity ^0.8.6;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@jbox/sol/contracts/interfaces/ITerminalDirectory.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@paulrberg/contracts/math/PRBMath.sol";
@@ -84,7 +85,6 @@ contract NFTMKT is IERC721Receiver {
         uint256 indexed _tokenId
     );
 
-
     /**
      * @notice Creates a NFTMKT for a Juicebox project.
      * @param terminalDirectory A directory of a project's current Juicebox terminal to receive payments in.
@@ -108,11 +108,14 @@ contract NFTMKT is IERC721Receiver {
     ) external {
         require(
             _contract.getApproved(_tokenId) == address(this),
-            "NFTMKT is not authorized to transfer this NFT. Approve this contract to move this token."
+            "NFTMKT::submit: NOT_APPROVED"
         );
 
         // Must be at least 1 recipient.
-        require(_recipients.length > 0, "NFTMKT::submit: No recipients are specified. You must set at least one recipient to submit an NFT."); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
+        require(
+            _recipients.length > 0,
+            "NFTMKT::submit: NO_RECIP"
+        ); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
 
         // Add up all the percents to make sure they cumulative are under 100%.
         uint256 _saleRecipientsPercentTotal = 0;
@@ -122,7 +125,7 @@ contract NFTMKT is IERC721Receiver {
             // The percent should be greater than 0.
             require(
                 _recipients[_i].percent > 0,
-                "NFTMKT::submit: Sum of recipient percentages cannot equal 0. "
+                "NFTMKT::submit: RECIPS_PERCENT_0"
             );
 
             // Add to the total percents.
@@ -133,13 +136,13 @@ contract NFTMKT is IERC721Receiver {
             // The total percent should be less than 10000.
             require(
                 _saleRecipientsPercentTotal <= 10000,
-                "NFTMKT::submit: Sum of recipient percentages cannot exceed 100%."
+                "NFTMKT::submit: RECIPS_PERCENT_EXCEEDS"
             );
 
             // The beneficiary shouldn't both be the zero address.
             require(
                 _recipients[_i].beneficiary != address(0),
-                "NFTMKT::submit: Beneficiary may not be the 0 address."
+                "NFTMKT::submit: BENEF_IS_0."
             );
         }
 
@@ -171,7 +174,7 @@ contract NFTMKT is IERC721Receiver {
         SalesRecipients[] memory _recipients = _recipientsOf[owner][_contract][
             _tokenId
         ];
-        // TODO Consider holding ETH and executing payout distribution upon `distribute` external call. 
+        // TODO Consider holding ETH and executing payout distribution upon `distribute` external call.
         // TODO `distributeAll`
         // Transfer between all recipients.
         for (uint256 _i = 0; _i < _recipients.length; _i++) {
@@ -199,7 +202,7 @@ contract NFTMKT is IERC721Receiver {
                     // The project must have a terminal to send funds to.
                     require(
                         _terminal != ITerminal(address(0)),
-                        "Terminal::pay: Terminal address cannot be the 0 address."
+                        "Terminal::pay: TERM_0"
                     );
 
                     _terminal.pay{value: _recipientCut}(
