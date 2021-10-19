@@ -1,12 +1,13 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.6;
+pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@jbox/sol/contracts/interfaces/ITerminalDirectory.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@paulrberg/contracts/math/PRBMath.sol";
+// import "@paulrberg/contracts/math/PRBMath.sol";
 
 struct SaleRecipients {
     bool preferUnstaked;
@@ -32,10 +33,10 @@ contract NFTMKT is IERC721Receiver {
     // All sale recipients for each project ID's configurations.
 
     /**
-     * @param address Address submitting the NFT
-     * @param address NFT 721 address
-     * @param uint TokenID
-     * @return An array of SaleRecipients.
+     *  address Address submitting the NFT
+     *  address NFT 721 address
+     *  uint TokenID
+     *  An array of SaleRecipients.
      */
     mapping(address => mapping(address => mapping(uint256 => SaleRecipients[])))
         public recipientsOf;
