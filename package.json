@@ -37,6 +37,7 @@
     "@jbox/sol": "^1.0.2",
     "@openzeppelin/contracts": "^4.3.1",
     "evm-bn": "^1.0.1",
+    "prb-math": "^2.4.0",
     "prb-math.js": "^1.0.2"
   }
 }
