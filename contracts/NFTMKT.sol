@@ -63,12 +63,12 @@ contract NFTMKT is IERC721Receiver {
         SaleRecipient[] _recipients
     );
     /**
-     * @notice Emitted when an NFT is successfully withdrawn from NFTMKT.
+     * @notice Emitted when an NFT is successfully delist from NFTMKT.
      * @param _to The address that listed the NFT.
      * @param _contract The NFT's contract address.
      * @param _tokenId The NFT's tokenId.
      */
-    event Withdrawn(
+    event Delisted(
         address indexed _to,
         IERC721 indexed _contract,
         uint256 indexed _tokenId
@@ -109,7 +109,7 @@ contract NFTMKT is IERC721Receiver {
         IERC721 _contract,
         uint256 _tokenId,
         uint256 _price,
-        SaleRecipient[] calldata _recipients // TODO @jango calldata?
+        SaleRecipient[] memory _recipients // TODO @jango calldata?
     ) external {
         require(
             _contract.getApproved(_tokenId) == address(this) ||
@@ -117,11 +117,11 @@ contract NFTMKT is IERC721Receiver {
                     _contract.ownerOf(_tokenId),
                     address(this)
                 ), // TODO is this OR ok?
-            "NFTMKT::submit: NOT_APPROVED"
+            "NFTMKT::list: NOT_APPROVED"
         );
 
         // Must be at least 1 recipient.
-        require(_recipients.length > 0, "NFTMKT::submit: NO_RECIP"); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
+        require(_recipients.length > 0, "NFTMKT::list: NO_RECIP"); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
 
         // Add up all `SaleRecipeint.percent` alottments to make sure they sum to no more than 100%.
         uint256 saleRecipientsPercentTotal = 0;
@@ -131,7 +131,7 @@ contract NFTMKT is IERC721Receiver {
             // The percent should be greater than 0.
             require(
                 _recipients[i].percent > 0,
-                "NFTMKT::submit: RECIPS_PERCENT_0"
+                "NFTMKT::list: RECIPS_PERCENT_0"
             );
 
             // Add to the total percents.
@@ -142,14 +142,14 @@ contract NFTMKT is IERC721Receiver {
             // The total percent should be less than 10000.
             require(
                 saleRecipientsPercentTotal <= 10000,
-                "NFTMKT::submit: RECIPS_PERCENT_EXCEEDS"
+                "NFTMKT::list: RECIPS_PERCENT_EXCEEDS"
             );
 
             // The beneficiary shouldn't be the zero address.
             // TODO @jango I suppose this is something we want to restrict in terminalv1 but in terminalv2 it would be ok? i'm thinking we could remove this require.
             require(
                 _recipients[i].beneficiary != address(0),
-                "NFTMKT::submit: BENEF_IS_0."
+                "NFTMKT::list: BENEF_IS_0."
             );
         }
 
@@ -164,7 +164,7 @@ contract NFTMKT is IERC721Receiver {
 
         // Transfer ownership of NFT to to the contract
         _contract.safeTransferFrom(msg.sender, address(this), _tokenId);
-        emit Submitted(msg.sender, _contract, _tokenId, _recipients);
+        emit Listed(msg.sender, _contract, _tokenId, _recipients);
     }
 
     /**
@@ -181,7 +181,7 @@ contract NFTMKT is IERC721Receiver {
         require(prices[_contract][_tokenId] == msg.value, "Incorrect "); // TODO `prices[][] <= msg.value` instead?
 
         // Get a reference to the sale recipients for this NFT.
-        SaleRecipients[] memory _recipients = recipientsOf[owner][_contract][
+        SaleRecipient[] memory _recipients = recipientsOf[owner][_contract][
             _tokenId
         ];
 
@@ -191,7 +191,7 @@ contract NFTMKT is IERC721Receiver {
         // Distribute ETH to all recipients.
         for (uint256 i = 0; i < _recipients.length; i++) {
             // Get a reference to the recipient being iterated on.
-            SaleRecipients memory _recipient = _recipients[i];
+            SaleRecipient memory _recipient = _recipients[i];
 
             // The amount to send to recipients. Recipients percents are out of 10000.
             uint256 _recipientCut = PRBMath.mulDiv(
@@ -232,37 +232,36 @@ contract NFTMKT is IERC721Receiver {
         emit Purchased(address(this), msg.sender, _contract, _tokenId);
     }
 
-    //TODO implement withdraw and withdrawTo that call _withdraw
-
     /**
-     * @notice Withdraw NFT from marketplace. Can only be called on an NFT by the address that submit it.
+     * @notice Cancels NFT listing on NFTMKT. Can only be called on an NFT by the address that listed it.
      */
-    function withdraw(
+    function delist(
         IERC721 _contract,
         uint256 _tokenId,
         address _destination
     ) external {
         // Check that this contract is approved to move the NFT
+        // TODO consider if we need this require. perhaps what matters more is that the calling address is approved, rather than the NFTMKT?
         require(
             _contract.getApproved(_tokenId) == address(this) ||
                 _contract.isApprovedForAll(
                     _contract.ownerOf(_tokenId),
                     address(this)
                 ),
-            "NFTMKT::withdraw: NOT_APPROVED"
+            "NFTMKT::delist: NOT_APPROVED"
         );
 
         // Check that caller listed the NFT
+        //TODO I wonder if the owner of the NFT should also be able to delist. Imagine I approve nftmkt, list for 1 wei, then sell to you on opensea, then buy it back on nftmkt (contract still has nft approval)
+        //TODO or alternately the NFT cannot be sold via nftmkt if it is currently held by an address OTHER than the address that listed it.  this may harm composability but is intuitively correct. This change would be in purchase, not here.
         require(recipientsOf[msg.sender][_contract][_tokenId].length > 0);
 
         // Remove from recipientsOf
-        recipientsOf[msg.sender][_contract][_tokenId] = [];
+        // recipientsOf[msg.sender][_contract][_tokenId] = SaleRecipient[];
 
         //TODO Maybe remove price from prices
 
-        // Transfer NFT from contract to caller.
-        _contract.safeTransferFrom(address(this), _destination, _tokenId);
-        emit Withdrawn(msg.sender, _contract, _tokenId);
+        emit Delisted(msg.sender, _contract, _tokenId);
     }
 
     /**
