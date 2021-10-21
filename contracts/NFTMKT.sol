@@ -33,7 +33,7 @@ contract NFTMKT is IERC721Receiver {
     // All sale recipients for each project ID's configurations.
 
     /**
-     *  address Address submitting the NFT
+     *  address Address listing the NFT
      *  IERC721 Contract address
      *  uint TokenID
      *  An array of SaleRecipients.
@@ -51,20 +51,20 @@ contract NFTMKT is IERC721Receiver {
     mapping(IERC721 => mapping(uint256 => uint256)) public prices;
 
     /**
-     * @notice Emitted when an NFT is successfully submitted to NFTMKT.
-     * @param _from The address that submitted the NFT.
+     * @notice Emitted when an NFT is successfully listed on NFTMKT.
+     * @param _from The address that listed the NFT.
      * @param _contract The NFT's contract address.
      * @param _tokenId The NFT's tokenId.
      */
-    event Submitted(
+    event Listed(
         address indexed _from,
         IERC721 indexed _contract,
         uint256 indexed _tokenId,
-        SaleRecipients[] _recipients
+        SaleRecipient[] _recipients
     );
     /**
      * @notice Emitted when an NFT is successfully withdrawn from NFTMKT.
-     * @param _to The address that submitted the NFT.
+     * @param _to The address that listed the NFT.
      * @param _contract The NFT's contract address.
      * @param _tokenId The NFT's tokenId.
      */
@@ -76,7 +76,7 @@ contract NFTMKT is IERC721Receiver {
 
     /**
      * @notice Emitted when an NFT is successfully purchased from NFTMKT.
-     * @param _from The address that submitted the NFT.
+     * @param _from The address that listed the NFT.
      * @param _to The address that purchased the NFT.
      * @param _contract The NFT's contract address.
      * @param _tokenId The NFT's tokenId.
@@ -99,7 +99,7 @@ contract NFTMKT is IERC721Receiver {
 
     /**
      * @notice List NFT in the NFTMKT and define who will receive project tokens resulting from a sale.
-     * @dev Must call `approve` on the 721 contract before calling `submit` on NFTMKT
+     * @dev Must call `approve` on the 721 contract before calling `list` on NFTMKT
      * @dev `SaleReceipients` are validated to add up to no more than 100%.
      * @param _contract The contract that issued the listed NFT.
      * @param _tokenId The tokenId of the listed NFT.
@@ -109,79 +109,89 @@ contract NFTMKT is IERC721Receiver {
         IERC721 _contract,
         uint256 _tokenId,
         uint256 _price,
-        SaleRecipient[] calldata _recipients // TODO calldata?
+        SaleRecipient[] calldata _recipients // TODO @jango calldata?
     ) external {
         require(
-            _contract.getApproved(_tokenId) == address(this),
+            _contract.getApproved(_tokenId) == address(this) ||
+                _contract.isApprovedForAll(
+                    _contract.ownerOf(_tokenId),
+                    address(this)
+                ), // TODO is this OR ok?
             "NFTMKT::submit: NOT_APPROVED"
         );
 
         // Must be at least 1 recipient.
         require(_recipients.length > 0, "NFTMKT::submit: NO_RECIP"); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
 
-        // Add up all sale recipeint percent alottments to make sure they sum to no more than 100%.
-        uint256 _saleRecipientsPercentTotal = 0;
+        // Add up all `SaleRecipeint.percent` alottments to make sure they sum to no more than 100%.
+        uint256 saleRecipientsPercentTotal = 0;
 
         // Validate that recipients add up to no more than 100%.
-        for (uint256 _i = 0; _i < _recipients.length; _i++) {
+        for (uint256 i = 0; i < _recipients.length; i++) {
             // The percent should be greater than 0.
             require(
-                _recipients[_i].percent > 0,
+                _recipients[i].percent > 0,
                 "NFTMKT::submit: RECIPS_PERCENT_0"
             );
 
             // Add to the total percents.
-            _saleRecipientsPercentTotal =
-                _saleRecipientsPercentTotal +
-                _recipients[_i].percent;
+            saleRecipientsPercentTotal =
+                saleRecipientsPercentTotal +
+                _recipients[i].percent;
 
             // The total percent should be less than 10000.
             require(
-                _saleRecipientsPercentTotal <= 10000,
+                saleRecipientsPercentTotal <= 10000,
                 "NFTMKT::submit: RECIPS_PERCENT_EXCEEDS"
             );
 
-            // The beneficiary shouldn't both be the zero address.
+            // The beneficiary shouldn't be the zero address.
+            // TODO @jango I suppose this is something we want to restrict in terminalv1 but in terminalv2 it would be ok? i'm thinking we could remove this require.
             require(
-                _recipients[_i].beneficiary != address(0),
+                _recipients[i].beneficiary != address(0),
                 "NFTMKT::submit: BENEF_IS_0."
             );
         }
 
-        // All recipient's percents must total to 100%.
-        require(_saleRecipientsPercentTotal == 10000);
-        recipientsOf[msg.sender][address(_contract)][_tokenId] = _recipients;
+        // If total sale recipients distribution is equal to 100%.
+        //TODO @jango any reason to accept a <100% SaleRecipients distribution?
+        require(saleRecipientsPercentTotal == 10000);
+        // Set the recipients for this NFT listing to the passed `_recipients`.
+        recipientsOf[msg.sender][_contract][_tokenId] = _recipients;
 
         // Store the price
-        prices[address(_contract)][_tokenId] = _price;
+        prices[_contract][_tokenId] = _price;
 
         // Transfer ownership of NFT to to the contract
         _contract.safeTransferFrom(msg.sender, address(this), _tokenId);
-        emit Submitted(msg.sender, address(_contract), _tokenId, _recipients);
+        emit Submitted(msg.sender, _contract, _tokenId, _recipients);
     }
 
     /**
      *
      */
     function purchase(IERC721 _contract, uint256 _tokenId) external payable {
+        // TODO add reentrancy guard
         // must route funds received from buyer to the preconfigured recipients. Logic for this can be very similar to the _distributeToPayoutMods
         // see https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
         // If SalesRecipients points at a project, call _terminal.pay(), if it pays out to an address, just transfer directly
 
         address owner;
 
-        require(prices[_contract][_tokenId] == msg.value);
+        require(prices[_contract][_tokenId] == msg.value, "Incorrect "); // TODO `prices[][] <= msg.value` instead?
 
-        // Get a reference to the project's payout recipients.
+        // Get a reference to the sale recipients for this NFT.
         SaleRecipients[] memory _recipients = recipientsOf[owner][_contract][
             _tokenId
         ];
+
         // TODO Consider holding ETH and executing payout distribution upon `distribute` external call.
         // TODO `distributeAll`
-        // Transfer between all recipients.
-        for (uint256 _i = 0; _i < _recipients.length; _i++) {
+
+        // Distribute ETH to all recipients.
+        for (uint256 i = 0; i < _recipients.length; i++) {
             // Get a reference to the recipient being iterated on.
-            SaleRecipients memory _recipient = _recipients[_i];
+            SaleRecipients memory _recipient = _recipients[i];
 
             // The amount to send to recipients. Recipients percents are out of 10000.
             uint256 _recipientCut = PRBMath.mulDiv(
@@ -190,23 +200,20 @@ contract NFTMKT is IERC721Receiver {
                 10000
             );
 
+            // If the recipient is owed
             if (_recipientCut > 0) {
-                // Transfer ETH to the recipient.
-
+                // And the recipient is a project
                 if (_recipient.projectId > 0) {
-                    // Otherwise, if a project is specified, make a payment to it.
-
                     // Get a reference to the Juicebox terminal being used.
                     ITerminal _terminal = terminalDirectory.terminalOf(
                         _recipient.projectId
                     );
-
-                    // The project must have a terminal to send funds to.
+                    // If the project has a terminal
                     require(
                         _terminal != ITerminal(address(0)),
                         "Terminal::pay: TERM_0"
                     );
-
+                    // Pay the terminal what this recipient is owed.
                     _terminal.pay{value: _recipientCut}(
                         _recipient.projectId,
                         _recipient.beneficiary,
@@ -219,7 +226,7 @@ contract NFTMKT is IERC721Receiver {
                 }
             }
         }
-        // TODO Consider adding destination parameter.
+        // TODO Consider adding destination parameter to a `purchaseFor` method
         // Transfer NFT to buyer
         _contract.safeTransferFrom(address(this), msg.sender, _tokenId);
         emit Purchased(address(this), msg.sender, _contract, _tokenId);
@@ -228,18 +235,24 @@ contract NFTMKT is IERC721Receiver {
     //TODO implement withdraw and withdrawTo that call _withdraw
 
     /**
-     * @notice Withdraw NFT from marketplace. Can only be called on a given NFT by the address that submit it.
-     * @dev
+     * @notice Withdraw NFT from marketplace. Can only be called on an NFT by the address that submit it.
      */
     function withdraw(
         IERC721 _contract,
         uint256 _tokenId,
         address _destination
     ) external {
-        // Check that contract holds this token
-        require(_contract.ownerOf(_tokenId) == address(this));
+        // Check that this contract is approved to move the NFT
+        require(
+            _contract.getApproved(_tokenId) == address(this) ||
+                _contract.isApprovedForAll(
+                    _contract.ownerOf(_tokenId),
+                    address(this)
+                ),
+            "NFTMKT::withdraw: NOT_APPROVED"
+        );
 
-        // Check that caller submitted the NFT
+        // Check that caller listed the NFT
         require(recipientsOf[msg.sender][_contract][_tokenId].length > 0);
 
         // Remove from recipientsOf
