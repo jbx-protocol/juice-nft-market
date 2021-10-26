@@ -1,4 +1,4 @@
-# NFT Market
+# 🛒 NFT Market
 
 ## Description 
 NFT Market is a NFT marketplace designed for Juicebox Projects.
