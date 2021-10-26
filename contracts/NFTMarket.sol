@@ -23,7 +23,7 @@ struct SaleRecipient {
  * @notice An NFT marketplace built for Juicebox projects.
  * @dev Accepts ERC721 only.
  */
-contract NFTMKT is IERC721Receiver {
+contract NFTMarket is IERC721Receiver {
     /**
     @dev The direct deposit terminals.
     */

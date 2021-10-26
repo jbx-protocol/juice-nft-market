@@ -100,12 +100,10 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     const NFTMarket = await deploy('NFTMarket', {
         from: deployer,
-        args: [
-            JBDirectory.address,
-        ],
+        args: [JBDirectory.address,],
         log: true,
         skipIfAlreadyDeployed: true,
     });
-    
+
     // transfer ownership of terminalStore to terminal.
 };
