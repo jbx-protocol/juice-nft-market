@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@jbox/sol/contracts/interfaces/ITerminalDirectory.sol";
+import "@jbx-protocol/contracts/contracts/v1/interfaces/ITerminalDirectory.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@paulrberg/contracts/math/PRBMath.sol";
 
