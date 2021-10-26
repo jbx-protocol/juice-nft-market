@@ -1,7 +1,7 @@
 {
-  "name": "nftmkt",
+  "name": "@jbx-protocol/nft-market",
   "version": "0.0.1",
-  "description": "NFTMKT is a NFT marketplace designed for Juicebox Projects.",
+  "description": "NFT Market is a NFT marketplace designed for Juicebox Projects.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -35,7 +35,7 @@
   "dependencies": {
     "@chainlink/contracts": "^0.2.1",
     "@ethersproject/bignumber": "^5.4.2",
-    "@jbox/sol": "^1.0.2",
+    "@jbx-protocol/contracts": "^0.0.4",
     "@openzeppelin/contracts": "^4.3.1",
     "evm-bn": "^1.0.1",
     "prb-math": "^2.4.0",

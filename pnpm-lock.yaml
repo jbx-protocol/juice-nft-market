@@ -3,7 +3,7 @@ lockfileVersion: 5.3
 specifiers:
   '@chainlink/contracts': ^0.2.1
   '@ethersproject/bignumber': ^5.4.2
-  '@jbox/sol': ^1.0.2
+  '@jbx-protocol/contracts': ^0.0.4
   '@nomiclabs/hardhat-ethers': npm:hardhat-deploy-ethers@^0.3.0-beta.11
   '@nomiclabs/hardhat-waffle': ^2.0.1
   '@openzeppelin/contracts': ^4.3.1
@@ -20,7 +20,7 @@ specifiers:
 dependencies:
   '@chainlink/contracts': 0.2.1
   '@ethersproject/bignumber': 5.4.2
-  '@jbox/sol': 1.0.2
+  '@jbx-protocol/contracts': 0.0.4_ethers@5.4.5+hardhat@2.6.1
   '@openzeppelin/contracts': 4.3.1
   evm-bn: 1.0.1
   prb-math: 2.4.0
@@ -37,14 +37,6 @@ devDependencies:
   hardhat-deploy: 0.9.4_hardhat@2.6.1
 
 packages:
-
-  /@babel/runtime/7.15.3:
-    resolution: {integrity: sha512-OvwMLqNXkCXSz1kSm58sEsNuhqOx/fKpnUnKnFB5v8uDda5bLNEHNgKPvhDN6IU0LDcnHQ90LlJ0Q6jnyBSIBA==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      regenerator-runtime: 0.13.9
-    dev: false
-    optional: true
 
   /@babel/runtime/7.15.4:
     resolution: {integrity: sha512-99catp6bHCaxr4sJ/DbTGgHS4+Rs2RVd2g7iOap6SLGPDknRK9ztKNsE/Fg6QhSeh1FGE5f6gHGQmvvn3I3xhw==}
@@ -108,7 +100,7 @@ packages:
   /@ensdomains/ensjs/2.0.1:
     resolution: {integrity: sha512-gZLntzE1xqPNkPvaHdJlV5DXHms8JbHBwrXc2xNrL1AylERK01Lj/txCCZyVQqFd3TvUO1laDbfUv8VII0qrjg==}
     dependencies:
-      '@babel/runtime': 7.15.3
+      '@babel/runtime': 7.15.4
       '@ensdomains/address-encoder': 0.1.9
       '@ensdomains/ens': 0.4.3
       '@ensdomains/resolver': 0.2.4
@@ -577,16 +569,41 @@ packages:
       '@ethersproject/properties': 5.4.0
       '@ethersproject/strings': 5.4.0
 
-  /@jbox/sol/1.0.2:
-    resolution: {integrity: sha512-ERGUJkt/qV8ID+qz1LeAfASbLu0393zq/8zZbFCfZBHifeUQbHOXdml+yMP5cyKDZXGhqh/M9xn22YbAIe+8pg==}
+  /@jbx-protocol/contracts/0.0.4_ethers@5.4.5+hardhat@2.6.1:
+    resolution: {integrity: sha512-YYJ91AjNIU0ljfZNLx903jC87EIC+NXQ0ht1sy3sq/ufXHcUIgrQlg5NsuIIQ5364B4HB9TEquU96KOr7iBYYQ==}
     dependencies:
       '@chainlink/contracts': 0.1.9
+      '@nomiclabs/hardhat-etherscan': 2.1.7_hardhat@2.6.1
       '@openzeppelin/contracts': 4.3.1
       '@paulrberg/contracts': 3.4.0
+      dotenv: 10.0.0
+      esm: 3.2.25
+      glob: 7.2.0
+      hardhat-deploy-ethers: 0.3.0-beta.11_ethers@5.4.5+hardhat@2.6.1
+      prettier: 2.4.1
     transitivePeerDependencies:
       - bufferutil
+      - ethers
+      - hardhat
       - supports-color
       - utf-8-validate
+    dev: false
+
+  /@nomiclabs/hardhat-etherscan/2.1.7_hardhat@2.6.1:
+    resolution: {integrity: sha512-9nt9EXubnkd2aTMnQIqKtp80bQFhun88krfB31FN2wB0T54b8YuK0riG2d+EKq/D3t1Kb00oA7oFSFpHLIbLDQ==}
+    peerDependencies:
+      hardhat: ^2.0.4
+    dependencies:
+      '@ethersproject/abi': 5.4.0
+      '@ethersproject/address': 5.4.0
+      cbor: 5.2.0
+      debug: 4.3.2
+      fs-extra: 7.0.1
+      hardhat: 2.6.1
+      node-fetch: 2.6.1
+      semver: 6.3.0
+    transitivePeerDependencies:
+      - supports-color
     dev: false
 
   /@nomiclabs/hardhat-waffle/2.0.1_0dd77a98ff39ddb1d7990735f27fec41:
@@ -807,7 +824,7 @@ packages:
     resolution: {integrity: sha512-7OH8P+N4n2LewbNiVpuleshPqj8G7n9Qkd5ot79sZ/R6xIRyXF05iBtg3/IbjIzOeQCrCE9aYUHNe2go9RuM0g==}
     dependencies:
       debug: 4.3.2
-      glob: 7.1.7
+      glob: 7.2.0
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -1316,7 +1333,7 @@ packages:
   /async/2.6.2:
     resolution: {integrity: sha512-H1qVYh1MYhEEFLsP97cVKqCGo7KfCyTt6uEWqsTBr9SO84oK9Uwbyd/yCW+6rKJLHksBNUVWZDAjfS+Ccx0Bbg==}
     dependencies:
-      lodash: 4.17.20
+      lodash: 4.17.21
     dev: true
 
   /async/2.6.3:
@@ -1376,7 +1393,7 @@ packages:
       convert-source-map: 1.8.0
       debug: 2.6.9
       json5: 0.5.1
-      lodash: 4.17.20
+      lodash: 4.17.21
       minimatch: 3.0.4
       path-is-absolute: 1.0.1
       private: 0.1.8
@@ -1392,7 +1409,7 @@ packages:
       babel-types: 6.26.0
       detect-indent: 4.0.0
       jsesc: 1.3.0
-      lodash: 4.17.20
+      lodash: 4.17.21
       source-map: 0.5.7
       trim-right: 1.0.1
     dev: true
@@ -1420,7 +1437,7 @@ packages:
       babel-helper-function-name: 6.24.1
       babel-runtime: 6.26.0
       babel-types: 6.26.0
-      lodash: 4.17.20
+      lodash: 4.17.21
     dev: true
 
   /babel-helper-explode-assignable-expression/6.24.1:
@@ -1467,7 +1484,7 @@ packages:
     dependencies:
       babel-runtime: 6.26.0
       babel-types: 6.26.0
-      lodash: 4.17.20
+      lodash: 4.17.21
     dev: true
 
   /babel-helper-remap-async-to-generator/6.24.1:
@@ -1549,7 +1566,7 @@ packages:
       babel-template: 6.26.0
       babel-traverse: 6.26.0
       babel-types: 6.26.0
-      lodash: 4.17.20
+      lodash: 4.17.21
     dev: true
 
   /babel-plugin-transform-es2015-classes/6.24.1:
@@ -1761,7 +1778,7 @@ packages:
       babel-runtime: 6.26.0
       core-js: 2.6.12
       home-or-tmp: 2.0.0
-      lodash: 4.17.20
+      lodash: 4.17.21
       mkdirp: 0.5.5
       source-map-support: 0.4.18
     dev: true
@@ -1780,7 +1797,7 @@ packages:
       babel-traverse: 6.26.0
       babel-types: 6.26.0
       babylon: 6.18.0
-      lodash: 4.17.20
+      lodash: 4.17.21
     dev: true
 
   /babel-traverse/6.26.0:
@@ -1794,7 +1811,7 @@ packages:
       debug: 2.6.9
       globals: 9.18.0
       invariant: 2.2.4
-      lodash: 4.17.20
+      lodash: 4.17.21
     dev: true
 
   /babel-types/6.26.0:
@@ -1802,7 +1819,7 @@ packages:
     dependencies:
       babel-runtime: 6.26.0
       esutils: 2.0.3
-      lodash: 4.17.20
+      lodash: 4.17.21
       to-fast-properties: 1.0.3
     dev: true
 
@@ -1874,7 +1891,6 @@ packages:
 
   /bignumber.js/9.0.1:
     resolution: {integrity: sha512-IdZR9mh6ahOBv/hYGiXyVuyCetmGJhtYkqLBpTStdhEGjegpPlUawydyaF3pbIOFynJTpllEs+NP+CS9jKFLjA==}
-    optional: true
 
   /binary-extensions/1.13.1:
     resolution: {integrity: sha512-Un7MIEDdUC5gNpcGDV97op1Ywk748MpHcFTHoYs6qnj1Z3j7I53VG3nwZhKzoBZmbdRNnb6WRdFlwl7tSDuZGw==}
@@ -2199,7 +2215,6 @@ packages:
       bignumber.js: 9.0.1
       nofilter: 1.0.4
     dev: false
-    optional: true
 
   /center-align/0.1.3:
     resolution: {integrity: sha1-qg0yYptu6XIgBBHL1EYckHvCt60=}
@@ -2368,6 +2383,7 @@ packages:
   /cids/0.7.5:
     resolution: {integrity: sha512-zT7mPeghoWAu+ppn8+BS1tQ5qGmbMfB4AregnQjA/qHY3GC1m1ptI9GkWNlgeu38r7CuRdXB47uY2XgAYt6QVA==}
     engines: {node: '>=4.0.0', npm: '>=3.0.0'}
+    deprecated: This module has been superseded by the multiformats module
     dependencies:
       buffer: 5.7.1
       class-is: 1.1.0
@@ -2724,7 +2740,7 @@ packages:
     resolution: {integrity: sha512-mel+jf7nrtEl5Pn1Qx46zARXKDpBbvzezse7p7LqINmdoIk8PYP5SySaxEmYv6TZ0JyEKA1hsCId6DIhgITtWQ==}
     deprecated: Debug versions >=3.2.0 <3.2.7 || >=4 <4.3.1 have a low-severity ReDos regression when used in a Node.js environment. It is recommended you upgrade to 3.2.7 or 4.3.1. (https://github.com/visionmedia/debug/issues/797)
     dependencies:
-      ms: 2.1.1
+      ms: 2.1.3
     dev: true
 
   /debug/3.2.7:
@@ -2925,6 +2941,11 @@ packages:
       no-case: 2.3.2
     dev: false
     optional: true
+
+  /dotenv/10.0.0:
+    resolution: {integrity: sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==}
+    engines: {node: '>=10'}
+    dev: false
 
   /dotignore/0.1.2:
     resolution: {integrity: sha512-UGGGWfSauusaVJC+8fgV+NVvBXkCTmVv7sk6nojDZZvuOUNGUy0Zk4UpHQD6EDjS0jpBwcACvH4eofvyzBcRDw==}
@@ -3165,6 +3186,11 @@ packages:
     dev: false
     optional: true
 
+  /esm/3.2.25:
+    resolution: {integrity: sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA==}
+    engines: {node: '>=6'}
+    dev: false
+
   /esprima/4.0.1:
     resolution: {integrity: sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A==}
     engines: {node: '>=4'}
@@ -3231,7 +3257,7 @@ packages:
   /eth-json-rpc-middleware/1.6.0:
     resolution: {integrity: sha512-tDVCTlrUvdqHKqivYMjtFZsdD7TtpNLBCfKAcOpaVs7orBMS/A8HWro6dIzNtTZIR05FAbJ3bioFOnZpuCew9Q==}
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       eth-query: 2.1.2
       eth-tx-summary: 3.2.4
       ethereumjs-block: 1.7.1
@@ -3301,7 +3327,7 @@ packages:
   /eth-tx-summary/3.2.4:
     resolution: {integrity: sha512-NtlDnaVZah146Rm8HMRUNMgIwG/ED4jiqk0TME9zFheMl1jOp6jL1m0NKGjJwehXQ6ZKCPr16MTr+qspKpEXNg==}
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       clone: 2.1.2
       concat-stream: 1.6.2
       end-of-stream: 1.4.4
@@ -3317,7 +3343,7 @@ packages:
     resolution: {integrity: sha512-/MSbf/r2/Ld8o0l15AymjOTlPqpN8Cr4ByUEA9GtR4x0yAh3TdtDzEg29zMjXCNPI7u6E5fOQdj/Cf9Tc7oVNw==}
     deprecated: 'New package name format for new versions: @ethereumjs/ethash. Please update.'
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       buffer-xor: 2.0.2
       ethereumjs-util: 7.1.0
       miller-rabin: 4.0.1
@@ -3407,7 +3433,7 @@ packages:
     resolution: {integrity: sha512-B+sSdtqm78fmKkBq78/QLKJbu/4Ts4P2KFISdgcuZUPDm9x+N7qgBPIIFUGbaakQh8bzuquiRVbdmvPKqbILRg==}
     deprecated: 'New package name format for new versions: @ethereumjs/block. Please update.'
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       ethereum-common: 0.2.0
       ethereumjs-tx: 1.3.7
       ethereumjs-util: 5.2.1
@@ -3418,7 +3444,7 @@ packages:
     resolution: {integrity: sha512-2p49ifhek3h2zeg/+da6XpdFR3GlqY3BIEiqxGF8j9aSRIgkb7M1Ky+yULBKJOu8PAZxfhsYA+HxUk2aCQp3vg==}
     deprecated: 'New package name format for new versions: @ethereumjs/block. Please update.'
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       ethereumjs-common: 1.5.0
       ethereumjs-tx: 2.1.2
       ethereumjs-util: 5.2.1
@@ -3429,7 +3455,7 @@ packages:
     resolution: {integrity: sha512-zCxaRMUOzzjvX78DTGiKjA+4h2/sF0OYL1QuPux0DHpyq8XiNoF5GYHtb++GUxVlMsMfZV7AVyzbtgcRdIcEPQ==}
     deprecated: 'New package name format for new versions: @ethereumjs/blockchain. Please update.'
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       ethashjs: 0.0.8
       ethereumjs-block: 2.2.2
       ethereumjs-common: 1.5.0
@@ -3520,7 +3546,7 @@ packages:
     resolution: {integrity: sha512-r/XIUik/ynGbxS3y+mvGnbOKnuLo40V5Mj1J25+HEO63aWYREIqvWeRO/hnROlMBE5WoniQmPmhiaN0ctiHaXw==}
     deprecated: 'New package name format for new versions: @ethereumjs/vm. Please update.'
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       async-eventemitter: 0.2.4
       ethereumjs-account: 2.0.5
       ethereumjs-block: 2.2.2
@@ -3537,7 +3563,7 @@ packages:
     resolution: {integrity: sha512-X6qqZbsY33p5FTuZqCnQ4+lo957iUJMM6Mpa6bL4UW0dxM6WmDSHuI4j/zOp1E2TDKImBGCJA9QPfc08PaNubA==}
     deprecated: 'New package name format for new versions: @ethereumjs/vm. Please update.'
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       async-eventemitter: 0.2.4
       core-js-pure: 3.16.3
       ethereumjs-account: 3.0.0
@@ -4010,7 +4036,6 @@ packages:
       graceful-fs: 4.2.8
       jsonfile: 4.0.0
       universalify: 0.1.2
-    dev: true
 
   /fs-minipass/1.2.7:
     resolution: {integrity: sha512-GWSSJGFy4e9GUeCcbIkED+bgAoFyj7XF1mV8rma3QW4NIqX9Kyx79N/PF61H5udOV3aY1IaMLs6pGbH71nlCTA==}
@@ -4185,6 +4210,17 @@ packages:
       minimatch: 3.0.4
       once: 1.4.0
       path-is-absolute: 1.0.1
+    dev: true
+
+  /glob/7.2.0:
+    resolution: {integrity: sha512-lmLf6gtyrPq8tTjSmrO94wBeQbFR3HbLHbuyD69wuyQkImp2hWqMGB47OX65FBkPffO641IP9jWa1z4ivqG26Q==}
+    dependencies:
+      fs.realpath: 1.0.0
+      inflight: 1.0.6
+      inherits: 2.0.4
+      minimatch: 3.0.4
+      once: 1.4.0
+      path-is-absolute: 1.0.1
 
   /global/4.4.0:
     resolution: {integrity: sha512-wv/LAoHdRE3BeTGz53FAamhGlPLhlssK45usmGFThIi4XqnBmjKQ16u+RNbP7WvigRZDxUsM0J3gcQ5yicaL0w==}
@@ -4262,7 +4298,6 @@ packages:
     dependencies:
       ethers: 5.4.5
       hardhat: 2.6.1
-    dev: true
 
   /hardhat-deploy/0.9.4_hardhat@2.6.1:
     resolution: {integrity: sha512-0Zr8R5SAq6oK/gi170yCDqPTvKNPHdlm6wQe3ZQg/uiIDZxofpRM2frQVPUFlgdI2yUXtVcGBiPcC2r2fEockw==}
@@ -5021,7 +5056,7 @@ packages:
   /json-rpc-engine/3.8.0:
     resolution: {integrity: sha512-6QNcvm2gFuuK4TKU1uwfH0Qd/cOSb9c1lls0gbnIhciktIUQJwz6NQNAW4B1KiGPenv7IKu97V222Yo1bNhGuA==}
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       babel-preset-env: 1.7.0
       babelify: 7.3.0
       json-rpc-error: 2.0.0
@@ -5638,7 +5673,7 @@ packages:
   /merkle-patricia-tree/3.0.0:
     resolution: {integrity: sha512-soRaMuNf/ILmw3KWbybaCjhx86EYeBbD8ph0edQCTed0JN/rxDt1EBN52Ajre3VyGo+91f8+/rfPIRQnnGMqmQ==}
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       ethereumjs-util: 5.2.1
       level-mem: 3.0.1
       level-ws: 1.0.0
@@ -5860,13 +5895,14 @@ packages:
 
   /multicodec/0.5.7:
     resolution: {integrity: sha512-PscoRxm3f+88fAtELwUnZxGDkduE2HD9Q6GHUOywQLjOGT/HAdhjLDYNZ1e7VR0s0TP0EwZ16LNUTFpoBGivOA==}
-    deprecated: stable api reached
+    deprecated: This module has been superseded by the multiformats module
     dependencies:
       varint: 5.0.2
     optional: true
 
   /multicodec/1.0.4:
     resolution: {integrity: sha512-NDd7FeS3QamVtbgfvu5h7fd1IlbaC4EQ0/pgU4zqE2vdHCmBGsUa0TiM8/TdSeG6BMPC92OOCf8F1ocE/Wkrrg==}
+    deprecated: This module has been superseded by the multiformats module
     dependencies:
       buffer: 5.7.1
       varint: 5.0.2
@@ -5963,7 +5999,6 @@ packages:
   /node-fetch/2.6.1:
     resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
     engines: {node: 4.x || >=6.0.0}
-    dev: true
 
   /node-gyp-build/4.2.3:
     resolution: {integrity: sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg==}
@@ -6002,7 +6037,6 @@ packages:
     resolution: {integrity: sha512-N8lidFp+fCz+TD51+haYdbDGrcBWwuHX40F5+z0qkUjMJ5Tp+rdSuAkMJ9N9eoolDlEVTf6u5icM+cNKkKW2mA==}
     engines: {node: '>=8'}
     dev: false
-    optional: true
 
   /normalize-package-data/2.5.0:
     resolution: {integrity: sha512-/5CMN3T0R4XTj4DcGaexo+roZSdSFW/0AOOTROrjxzCG1wrWXEsGbRKevjlIL+ZDE4sZlJr5ED4YW0yqmkK+eA==}
@@ -6492,11 +6526,10 @@ packages:
     engines: {node: '>=4'}
     optional: true
 
-  /prettier/2.3.2:
-    resolution: {integrity: sha512-lnJzDfJ66zkMy58OL5/NY5zp70S7Nz6KqcKkXYzn2tMVrNxvbqaBpg7H3qHaLxCJ5lNMsGuM8+ohS7cZrthdLQ==}
+  /prettier/2.4.1:
+    resolution: {integrity: sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA==}
     engines: {node: '>=10.13.0'}
     hasBin: true
-    dev: true
 
   /printj/1.1.2:
     resolution: {integrity: sha512-zA2SmoLaxZyArQTOPj5LXecR+RagfPSU5Kw1qP+jkWeNlrq+eJZyY2oS68SU1Z/7/myXM4lo9716laOFAVStCQ==}
@@ -6935,7 +6968,7 @@ packages:
     resolution: {integrity: sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==}
     hasBin: true
     dependencies:
-      glob: 7.1.7
+      glob: 7.2.0
 
   /ripemd160-min/0.0.6:
     resolution: {integrity: sha512-+GcJgQivhs6S9qvLogusiTcS9kQUfgR75whKuy5jIhuiOfQuJ8fjqxV6EGD5duH1Y/FawFUMtMhyeq3Fbnib8A==}
@@ -7033,7 +7066,6 @@ packages:
   /semver/6.3.0:
     resolution: {integrity: sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==}
     hasBin: true
-    dev: true
 
   /semver/7.3.5:
     resolution: {integrity: sha512-PoeGJYh8HK4BTO/a9Tf6ZG3veo/A7ZVsYrSA6J8ny9nb3B1VrpkuN+z9OE5wfE5p6H4LchYZsegiQgbJD94ZFQ==}
@@ -7750,9 +7782,9 @@ packages:
       '@types/prettier': 2.3.2
       '@types/resolve': 0.0.8
       chalk: 2.4.2
-      glob: 7.1.7
+      glob: 7.2.0
       mkdirp: 0.5.5
-      prettier: 2.3.2
+      prettier: 2.4.1
       resolve: 1.20.0
       ts-essentials: 1.0.4
     dev: true
@@ -8509,7 +8541,7 @@ packages:
   /web3-provider-engine/14.2.1:
     resolution: {integrity: sha512-iSv31h2qXkr9vrL6UZDm4leZMc32SjWJFGOp/D92JXfcEboCqraZyuExDkpxKw8ziTufXieNM7LSXNHzszYdJw==}
     dependencies:
-      async: 2.6.2
+      async: 2.6.3
       backoff: 2.5.0
       clone: 2.1.2
       cross-fetch: 2.2.5
