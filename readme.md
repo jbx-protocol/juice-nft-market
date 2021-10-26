@@ -1,7 +1,7 @@
-# NFTMKT
+# NFT Market
 
 ## Description 
-NFTMKT is a NFT marketplace designed for Juicebox Projects.
+NFT Market is a NFT marketplace designed for Juicebox Projects.
 
 ## Objectives
 - Allow people to post and sell products/art that route proceeds to various preprogrammed addresses and juicebox project treasuries.
