@@ -156,8 +156,11 @@ contract NFTMKT is IERC721Receiver {
         // If total sale recipients distribution is equal to 100%.
         //TODO @jango any reason to accept a <100% SaleRecipients distribution?
         require(saleRecipientsPercentTotal == 10000);
-        // Set the recipients for this NFT listing to the passed `_recipients`.
-        recipientsOf[msg.sender][_contract][_tokenId] = _recipients;
+
+        for (uint256 i = 0; i < _recipients.length - 1; i++) {
+            // Set the recipients for this NFT listing to the passed `_recipients`.
+            recipientsOf[msg.sender][_contract][_tokenId].push(_recipients[i]);
+        }
 
         // Store the price
         prices[_contract][_tokenId] = _price;
@@ -237,8 +240,7 @@ contract NFTMKT is IERC721Receiver {
      */
     function delist(
         IERC721 _contract,
-        uint256 _tokenId,
-        address _destination
+        uint256 _tokenId
     ) external {
         // Check that this contract is approved to move the NFT
         // TODO consider if we need this require. perhaps what matters more is that the calling address is approved, rather than the NFTMKT?
