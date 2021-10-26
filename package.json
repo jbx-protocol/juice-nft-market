@@ -2,43 +2,57 @@
   "name": "@jbx-protocol/nft-market",
   "version": "0.0.1",
   "description": "NFT Market is a NFT marketplace designed for Juicebox Projects.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jbx-protocol/NFTMKT.git"
-  },
-  "keywords": [
-    "solidity",
-    "juicebox",
-    "nft",
-    "marketplace"
-  ],
-  "author": "nnnnicholas",
+  "author": "nnnnicholas & mejango",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jbx-protocol/NFTMKT/issues"
   },
-  "homepage": "https://github.com/jbx-protocol/NFTMKT#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbx-protocol/juice-nft-market.git"
+  },
+  "keywords": [
+    "nft",
+    "marketplace",
+    "erc721",
+    "solidity",
+    "juicebox",
+    "ethereum",
+    "evm",
+    "smart-contract"
+  ],
+  "homepage": "https://github.com/jbx-protocol/juice-nft-market",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.11",
+    "@nomiclabs/hardhat-etherscan": "^2.1.7",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@paulrberg/contracts": "^3.4.0",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.4.5",
     "hardhat": "^2.6.1",
-    "hardhat-deploy": "^0.9.4"
+    "hardhat-deploy": "^0.9.4",
+    "hardhat-gas-reporter": "^1.0.4"
   },
   "dependencies": {
     "@chainlink/contracts": "^0.2.1",
     "@ethersproject/bignumber": "^5.4.2",
     "@jbx-protocol/contracts": "^0.0.4",
     "@openzeppelin/contracts": "^4.3.1",
+    "dotenv": "^10.0.0",
     "evm-bn": "^1.0.1",
     "prb-math": "^2.4.0",
     "prb-math.js": "^1.0.2"
+  },
+  "scripts": {
+    "chain": "hardhat node",
+    "test": "hardhat test --network localhost",
+    "test:gas": "REPORT_GAS=true hardhat test --network localhost",
+    "test:unit": "mocha -r esm --grep \"Unit\" --bail",
+    "test:integration": "mocha -r esm --grep \"Integration\" --bail",
+    "clean": "rimraf ./cache && rimraf ./artifacts",
+    "compile-force": "yarn cleangit && __DANGEROUS_OVM_IGNORE_ERRORS__=true hardhat compile",
+    "compile": "yarn clean && hardhat compile",
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
   }
 }
