@@ -145,10 +145,11 @@ contract NFTMarket is IERC721Receiver {
                 "NFTMKT::list: RECIPS_PERCENT_EXCEEDS"
             );
 
-            // The beneficiary shouldn't be the zero address.
-            // TODO @jango I suppose this is something we want to restrict in terminalv1 but in terminalv2 it would be ok? i'm thinking we could remove this require.
+            // If a projectId isn't specified, the beneficiary shouldn't be the zero address.
+            // If a projectId is specified, a beneficiary of zero will send tokens to the purchaser.
             require(
-                _recipients[i].beneficiary != address(0),
+                _recipients[i].projectId != 0 ||
+                    _recipients[i].beneficiary != address(0),
                 "NFTMKT::list: BENEF_IS_0."
             );
         }
@@ -166,6 +167,7 @@ contract NFTMarket is IERC721Receiver {
         prices[_contract][_tokenId] = _price;
 
         // Transfer ownership of NFT to to the contract
+        // TODO @nicholas set this contract as the operator instead of transfering to this contract. right?
         _contract.safeTransferFrom(msg.sender, address(this), _tokenId);
         emit Listed(msg.sender, _contract, _tokenId, _recipients);
     }
@@ -219,7 +221,10 @@ contract NFTMarket is IERC721Receiver {
                     // Pay the terminal what this recipient is owed.
                     _terminal.pay{value: _recipientCut}(
                         _recipient.projectId,
-                        _recipient.beneficiary,
+                        // If no beneficiary is specified, send the tokens to the msg.sender.
+                        _recipient.beneficiary == address(0)
+                            ? msg.sender
+                            : _recipient.beneficiary,
                         _recipient.memo,
                         _recipient.preferUnstaked
                     );
@@ -238,10 +243,7 @@ contract NFTMarket is IERC721Receiver {
     /**
      * @notice Cancels NFT listing on NFTMKT. Can only be called on an NFT by the address that listed it.
      */
-    function delist(
-        IERC721 _contract,
-        uint256 _tokenId
-    ) external {
+    function delist(IERC721 _contract, uint256 _tokenId) external {
         // Check that this contract is approved to move the NFT
         // TODO consider if we need this require. perhaps what matters more is that the calling address is approved, rather than the NFTMKT?
         require(
