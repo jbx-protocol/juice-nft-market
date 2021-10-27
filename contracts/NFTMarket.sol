@@ -151,15 +151,12 @@ contract NFTMarket is IERC721Receiver {
                 _recipients[i].beneficiary != address(0),
                 "NFTMKT::list: BENEF_IS_0."
             );
+            // Set the recipients for this NFT listing to the passed `_recipients`.
+            recipientsOf[msg.sender][_contract][_tokenId].push(_recipients[i]);
         }
 
         // If total sale recipients distribution is equal to 100%.
         require(saleRecipientsPercentTotal == 10000);
-
-        for (uint256 i = 0; i < _recipients.length - 1; i++) {
-            // Set the recipients for this NFT listing to the passed `_recipients`.
-            recipientsOf[msg.sender][_contract][_tokenId].push(_recipients[i]);
-        }
 
         // Store the price
         prices[_contract][_tokenId] = _price;
