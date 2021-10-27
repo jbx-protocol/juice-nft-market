@@ -60,7 +60,8 @@ contract NFTMarket is IERC721Receiver {
         address indexed _from,
         IERC721 indexed _contract,
         uint256 indexed _tokenId,
-        SaleRecipient[] _recipients
+        SaleRecipient[] _recipients,
+        uint256 _price
     );
     /**
      * @notice Emitted when an NFT is successfully delist from NFTMKT.
@@ -85,7 +86,8 @@ contract NFTMarket is IERC721Receiver {
         address _from,
         address indexed _to,
         IERC721 indexed _contract,
-        uint256 indexed _tokenId
+        uint256 indexed _tokenId,
+        uint256 _price
     );
 
     /**
@@ -163,7 +165,7 @@ contract NFTMarket is IERC721Receiver {
 
         // Transfer ownership of NFT to to the contract
         _contract.safeTransferFrom(msg.sender, address(this), _tokenId);
-        emit Listed(msg.sender, _contract, _tokenId, _recipients);
+        emit Listed(msg.sender, _contract, _tokenId, _recipients, _price);
     }
 
     /**
@@ -237,7 +239,13 @@ contract NFTMarket is IERC721Receiver {
         // Delete the recipients.
         delete recipientsOf[_owner][_contract][_tokenId];
 
-        emit Purchased(address(this), msg.sender, _contract, _tokenId);
+        emit Purchased(
+            address(this),
+            msg.sender,
+            _contract,
+            _tokenId,
+            msg.value
+        );
     }
 
     /**
