@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@jbx-protocol/contracts/contracts/v1/interfaces/ITerminalDirectory.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@paulrberg/contracts/math/PRBMath.sol";
+import 'hardhat/console.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
+import '@jbx-protocol/contracts/contracts/v1/interfaces/ITerminalDirectory.sol';
+import '@openzeppelin/contracts/utils/Address.sol';
+import '@paulrberg/contracts/math/PRBMath.sol';
 
 struct SaleRecipient {
     bool preferUnstaked;
@@ -117,11 +117,11 @@ contract NFTMarket is IERC721Receiver {
                     _contract.ownerOf(_tokenId),
                     address(this)
                 ), // TODO is this OR ok?
-            "NFTMKT::list: NOT_APPROVED"
+            'NFTMKT::list: NOT_APPROVED'
         );
 
         // Must be at least 1 recipient.
-        require(_recipients.length > 0, "NFTMKT::list: NO_RECIP"); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
+        require(_recipients.length > 0, 'NFTMKT::list: NO_RECIP'); //TODO Verify new error is ok. Old error: 'ModStore::setPayoutMods: NO_OP'
 
         // Add up all `SaleRecipeint.percent` alottments to make sure they sum to no more than 100%.
         uint256 saleRecipientsPercentTotal = 0;
@@ -131,7 +131,7 @@ contract NFTMarket is IERC721Receiver {
             // The percent should be greater than 0.
             require(
                 _recipients[i].percent > 0,
-                "NFTMKT::list: RECIPS_PERCENT_0"
+                'NFTMKT::list: RECIPS_PERCENT_0'
             );
 
             // Add to the total percents.
@@ -142,7 +142,7 @@ contract NFTMarket is IERC721Receiver {
             // The total percent should be less than 10000.
             require(
                 saleRecipientsPercentTotal <= 10000,
-                "NFTMKT::list: RECIPS_PERCENT_EXCEEDS"
+                'NFTMKT::list: RECIPS_PERCENT_EXCEEDS'
             );
 
             // If a projectId isn't specified, the beneficiary shouldn't be the zero address.
@@ -151,6 +151,7 @@ contract NFTMarket is IERC721Receiver {
                 _recipients[i].projectId != 0 ||
                     _recipients[i].beneficiary != address(0),
                 "NFTMKT::list: BENEF_IS_0."
+
             );
         }
 
@@ -183,7 +184,7 @@ contract NFTMarket is IERC721Receiver {
 
         address owner;
 
-        require(prices[_contract][_tokenId] == msg.value, "Incorrect "); // TODO `prices[][] <= msg.value` instead?
+        require(prices[_contract][_tokenId] == msg.value, 'Incorrect '); // TODO `prices[][] <= msg.value` instead?
 
         // Get a reference to the sale recipients for this NFT.
         SaleRecipient[] memory _recipients = recipientsOf[owner][_contract][
@@ -216,7 +217,7 @@ contract NFTMarket is IERC721Receiver {
                     // If the project has a terminal
                     require(
                         _terminal != ITerminal(address(0)),
-                        "Terminal::pay: TERM_0"
+                        'Terminal::pay: TERM_0'
                     );
                     // Pay the terminal what this recipient is owed.
                     _terminal.pay{value: _recipientCut}(
@@ -252,7 +253,7 @@ contract NFTMarket is IERC721Receiver {
                     _contract.ownerOf(_tokenId),
                     address(this)
                 ),
-            "NFTMKT::delist: NOT_APPROVED"
+            'NFTMKT::delist: NOT_APPROVED'
         );
 
         // Check that caller listed the NFT
