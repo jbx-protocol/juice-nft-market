@@ -257,8 +257,6 @@ contract NFTMarket is IERC721Receiver {
         );
 
         // Check that caller listed the NFT
-        //TODO I wonder if the owner of the NFT should also be able to delist. Imagine I approve nftmkt, list for 1 wei, then sell to you on opensea, then buy it back on nftmkt (contract still has nft approval)
-        //TODO or alternately the NFT cannot be sold via nftmkt if it is currently held by an address OTHER than the address that listed it.  this may harm composability but is intuitively correct. This change would be in purchase, not here.
         require(recipientsOf[msg.sender][_contract][_tokenId].length > 0);
 
         // Remove from recipientsOf
