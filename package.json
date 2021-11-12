@@ -53,6 +53,7 @@
     "clean": "rimraf ./cache && rimraf ./artifacts",
     "compile-force": "yarn cleangit && __DANGEROUS_OVM_IGNORE_ERRORS__=true hardhat compile",
     "compile": "yarn clean && hardhat compile",
-    "pretty": "prettier --write \"./**/*.{js,jsx,json}\""
+    "pretty": "prettier --write \"./**/*.{js,jsx,json}\"",
+    "lint": "solhint contracts/** --fix"
   }
 }

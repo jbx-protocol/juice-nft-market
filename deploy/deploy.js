@@ -1,109 +1,37 @@
 /**
- * Deploys the Juice V2 contracts.
+ * Deploys the Juice NFT Market contract.
  *
  * Example usage:
  *
- * npx hardhat deploy --network rinkeby
+ * pnpm hardhat deploy --network rinkeby
+ *
+ * TODO: Find a solution for local chain.
  */
-module.exports = async ({ getNamedAccounts, deployments }) => {
-    const { deploy } = deployments;
-    const { deployer } = await getNamedAccounts();
 
-    const JBOperatorStore = await deploy('JBOperatorStore', {
-        from: deployer,
-        args: [],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
+const rinkebyJBDirectory = require(`@jbx-protocol/contracts/deployments/rinkeby/JBDirectory.json`);
 
-    const JBPrices = await deploy('JBPrices', {
-        from: deployer,
-        args: [],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
+const getJBDirectoryAddress = (chainId) => {
+  if (chainId == 4) {
+    return rinkebyJBDirectory.address;
+  }
 
-    const JBProjects = await deploy('JBProjects', {
-        from: deployer,
-        args: [JBOperatorStore.address],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
+  throw Error(`Chain ID ${chainId} is not yet supported.`);
+};
 
-    const JBDirectory = await deploy('JBDirectory', {
-        from: deployer,
-        args: [JBOperatorStore.address, JBProjects.address],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
+module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
+  const { deploy } = deployments;
+  const { deployer } = await getNamedAccounts();
+  const chainId = await getChainId();
 
-    const JBFundingCycleStore = await deploy('JBFundingCycleStore', {
-        from: deployer,
-        args: [JBDirectory.address],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
+  const jbDirectoryAddress = getJBDirectoryAddress(chainId);
+  console.log(
+    `Deploying Juice NFT Market with Chain ID {${chainId}} and JBDirectory address ${jbDirectoryAddress}`,
+  );
 
-    const JBTokenStore = await deploy('JBTokenStore', {
-        from: deployer,
-        args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
-
-    const JBSplitStore = await deploy('JBSplitsStore', {
-        from: deployer,
-        args: [JBOperatorStore.address, JBProjects.address, JBDirectory.address],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
-
-    const JBControllerV1 = await deploy('JBController', {
-        from: deployer,
-        args: [
-            JBOperatorStore.address,
-            JBProjects.address,
-            JBDirectory.address,
-            JBFundingCycleStore.address,
-            JBTokenStore.address,
-            JBSplitStore.address,
-        ],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
-
-    const JBETHPaymentTerminalStore = await deploy('JBETHPaymentTerminalStore', {
-        from: deployer,
-        args: [
-            JBPrices.address,
-            JBProjects.address,
-            JBDirectory.address,
-            JBFundingCycleStore.address,
-            JBTokenStore.address,
-        ],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
-
-    const _ = await deploy('JBETHPaymentTerminal', {
-        from: deployer,
-        args: [
-            JBOperatorStore.address,
-            JBProjects.address,
-            JBDirectory.address,
-            JBSplitStore.address,
-            JBETHPaymentTerminalStore.address,
-        ],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
-
-    const NFTMarket = await deploy('NFTMarket', {
-        from: deployer,
-        args: [JBDirectory.address,],
-        log: true,
-        skipIfAlreadyDeployed: true,
-    });
-
-    // transfer ownership of terminalStore to terminal.
+  await deploy('NFTMarket', {
+    from: deployer,
+    args: [jbDirectoryAddress],
+    log: true,
+    skipIfAlreadyDeployed: true,
+  });
 };

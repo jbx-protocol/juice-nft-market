@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
-import "hardhat/console.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@jbx-protocol/contracts/contracts/v1/interfaces/ITerminalDirectory.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@paulrberg/contracts/math/PRBMath.sol";
+import 'hardhat/console.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
+import '@jbx-protocol/contracts/contracts/v1/interfaces/ITerminalDirectory.sol';
+import '@openzeppelin/contracts/utils/Address.sol';
+import '@paulrberg/contracts/math/PRBMath.sol';
 
 struct SaleRecipient {
     bool preferUnstaked;
@@ -119,11 +119,11 @@ contract NFTMarket is IERC721Receiver {
                     _contract.ownerOf(_tokenId),
                     address(this)
                 ), // TODO is this OR ok?
-            "NFTMKT::list: NOT_APPROVED"
+            'NFTMKT::list: NOT_APPROVED'
         );
 
         // Must be at least 1 recipient.
-        require(_recipients.length > 0, "NFTMKT::list: NO_RECIP"); //TODO Verify new error is ok. Old error: "ModStore::setPayoutMods: NO_OP"
+        require(_recipients.length > 0, 'NFTMKT::list: NO_RECIP'); //TODO Verify new error is ok. Old error: 'ModStore::setPayoutMods: NO_OP'
 
         // Add up all `SaleRecipeint.percent` alottments to make sure they sum to no more than 100%.
         uint256 saleRecipientsPercentTotal = 0;
@@ -133,7 +133,7 @@ contract NFTMarket is IERC721Receiver {
             // The percent should be greater than 0.
             require(
                 _recipients[i].percent > 0,
-                "NFTMKT::list: RECIPS_PERCENT_0"
+                'NFTMKT::list: RECIPS_PERCENT_0'
             );
 
             // Add to the total percents.
@@ -144,14 +144,16 @@ contract NFTMarket is IERC721Receiver {
             // The total percent should be less than 10000.
             require(
                 saleRecipientsPercentTotal <= 10000,
-                "NFTMKT::list: RECIPS_PERCENT_EXCEEDS"
+                'NFTMKT::list: RECIPS_PERCENT_EXCEEDS'
             );
 
-            // The beneficiary shouldn't be the zero address.
-            // TODO @jango I suppose this is something we want to restrict in terminalv1 but in terminalv2 it would be ok? i'm thinking we could remove this require.
+            // If a projectId isn't specified, the beneficiary shouldn't be the zero address.
+            // If a projectId is specified, a beneficiary of zero will send tokens to the purchaser.
             require(
-                _recipients[i].beneficiary != address(0),
+                _recipients[i].projectId != 0 ||
+                    _recipients[i].beneficiary != address(0),
                 "NFTMKT::list: BENEF_IS_0."
+
             );
             // Set the recipients for this NFT listing to the passed `_recipients`.
             recipientsOf[msg.sender][_contract][_tokenId].push(_recipients[i]);
@@ -164,6 +166,7 @@ contract NFTMarket is IERC721Receiver {
         prices[_contract][_tokenId] = _price;
 
         // Transfer ownership of NFT to to the contract
+        // TODO @nicholas set this contract as the operator instead of transfering to this contract. right?
         _contract.safeTransferFrom(msg.sender, address(this), _tokenId);
         emit Listed(msg.sender, _contract, _tokenId, _recipients, _price);
     }
@@ -217,12 +220,15 @@ contract NFTMarket is IERC721Receiver {
                     // If the project has a terminal
                     require(
                         _terminal != ITerminal(address(0)),
-                        "Terminal::pay: TERM_0"
+                        'Terminal::pay: TERM_0'
                     );
                     // Pay the terminal what this recipient is owed.
                     _terminal.pay{value: _recipientCut}(
                         _recipient.projectId,
-                        _recipient.beneficiary,
+                        // If no beneficiary is specified, send the tokens to the msg.sender.
+                        _recipient.beneficiary == address(0)
+                            ? msg.sender
+                            : _recipient.beneficiary,
                         _recipient.memo,
                         _recipient.preferUnstaked
                     );
@@ -260,12 +266,10 @@ contract NFTMarket is IERC721Receiver {
                     _contract.ownerOf(_tokenId),
                     address(this)
                 ),
-            "NFTMKT::delist: NOT_APPROVED"
+            'NFTMKT::delist: NOT_APPROVED'
         );
 
         // Check that caller listed the NFT
-        //TODO I wonder if the owner of the NFT should also be able to delist. Imagine I approve nftmkt, list for 1 wei, then sell to you on opensea, then buy it back on nftmkt (contract still has nft approval)
-        //TODO or alternately the NFT cannot be sold via nftmkt if it is currently held by an address OTHER than the address that listed it.  this may harm composability but is intuitively correct. This change would be in purchase, not here.
         require(recipientsOf[msg.sender][_contract][_tokenId].length > 0);
 
         // Remove from recipientsOf
