@@ -60,7 +60,8 @@ contract NFTMarket is IERC721Receiver {
         address indexed _from,
         IERC721 indexed _contract,
         uint256 indexed _tokenId,
-        SaleRecipient[] _recipients
+        SaleRecipient[] _recipients,
+        uint256 _price
     );
     /**
      * @notice Emitted when an NFT is successfully delist from NFTMKT.
@@ -85,7 +86,8 @@ contract NFTMarket is IERC721Receiver {
         address _from,
         address indexed _to,
         IERC721 indexed _contract,
-        uint256 indexed _tokenId
+        uint256 indexed _tokenId,
+        uint256 _price
     );
 
     /**
@@ -153,16 +155,12 @@ contract NFTMarket is IERC721Receiver {
                 "NFTMKT::list: BENEF_IS_0."
 
             );
-        }
-
-        // If total sale recipients distribution is equal to 100%.
-        //TODO @jango any reason to accept a <100% SaleRecipients distribution?
-        require(saleRecipientsPercentTotal == 10000);
-
-        for (uint256 i = 0; i < _recipients.length - 1; i++) {
             // Set the recipients for this NFT listing to the passed `_recipients`.
             recipientsOf[msg.sender][_contract][_tokenId].push(_recipients[i]);
         }
+
+        // If total sale recipients distribution is equal to 100%.
+        require(saleRecipientsPercentTotal == 10000);
 
         // Store the price
         prices[_contract][_tokenId] = _price;
@@ -170,26 +168,31 @@ contract NFTMarket is IERC721Receiver {
         // Transfer ownership of NFT to to the contract
         // TODO @nicholas set this contract as the operator instead of transfering to this contract. right?
         _contract.safeTransferFrom(msg.sender, address(this), _tokenId);
-        emit Listed(msg.sender, _contract, _tokenId, _recipients);
+        emit Listed(msg.sender, _contract, _tokenId, _recipients, _price);
     }
 
     /**
      *
      */
-    function purchase(IERC721 _contract, uint256 _tokenId) external payable {
+    function purchase(
+        IERC721 _contract,
+        uint256 _tokenId,
+        address _owner
+    ) external payable {
         // TODO add reentrancy guard
         // must route funds received from buyer to the preconfigured recipients. Logic for this can be very similar to the _distributeToPayoutMods
         // see https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
         // If SalesRecipients points at a project, call _terminal.pay(), if it pays out to an address, just transfer directly
 
-        address owner;
-
-        require(prices[_contract][_tokenId] == msg.value, 'Incorrect '); // TODO `prices[][] <= msg.value` instead?
+        require(prices[_contract][_tokenId] == msg.value, "Incorrect ");
 
         // Get a reference to the sale recipients for this NFT.
-        SaleRecipient[] memory _recipients = recipientsOf[owner][_contract][
+        SaleRecipient[] memory _recipients = recipientsOf[_owner][_contract][
             _tokenId
         ];
+
+        // There must be recipients.
+        require(_recipients.length > 0, "Incorrect ");
 
         // TODO Consider holding ETH and executing payout distribution upon `distribute` external call.
         // TODO `distributeAll`
@@ -238,7 +241,17 @@ contract NFTMarket is IERC721Receiver {
         // TODO Consider adding destination parameter to a `purchaseFor` method
         // Transfer NFT to buyer
         _contract.safeTransferFrom(address(this), msg.sender, _tokenId);
-        emit Purchased(address(this), msg.sender, _contract, _tokenId);
+
+        // Delete the recipients.
+        delete recipientsOf[_owner][_contract][_tokenId];
+
+        emit Purchased(
+            address(this),
+            msg.sender,
+            _contract,
+            _tokenId,
+            msg.value
+        );
     }
 
     /**
@@ -260,9 +273,7 @@ contract NFTMarket is IERC721Receiver {
         require(recipientsOf[msg.sender][_contract][_tokenId].length > 0);
 
         // Remove from recipientsOf
-        // recipientsOf[msg.sender][_contract][_tokenId] = SaleRecipient[];
-
-        //TODO Maybe remove price from prices
+        delete recipientsOf[msg.sender][_contract][_tokenId];
 
         emit Delisted(msg.sender, _contract, _tokenId);
     }
