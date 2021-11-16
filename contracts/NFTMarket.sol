@@ -21,7 +21,7 @@ struct SaleRecipient {
  * @title NFTMKT
  * @author @nnnnicholas & @mejango
  * @notice An NFT marketplace built for Juicebox projects.
- * @dev Accepts ERC721 only.
+ * @dev Compatible with ERC-721 NFTs only .
  */
 contract NFTMarket is IERC721Receiver {
     /**
@@ -31,6 +31,16 @@ contract NFTMarket is IERC721Receiver {
 
     // TODO: Reuse the same SaleRecipient by using hashes of SaleRecipient as keys in a mapping instead
     // All sale recipients for each project ID's configurations.
+    // mapping(bytes32 => SaleRecipient[]) saleRecipients; //declare first
+    //listing
+    // bytes32 hash = keccak256(abi.encode(_recipients)); //in the list fn (this line and subsequent)
+    // if(saleRecipients[hash] != 0){
+    //     // used stored recipients
+    // } else {
+    //     // check that it sums to 10000
+    //     saleRecipients[hash] = _recipients;
+    // }
+    
 
     /**
      *  address Address listing the NFT
@@ -160,7 +170,7 @@ contract NFTMarket is IERC721Receiver {
         }
 
         // If total sale recipients distribution is equal to 100%.
-        require(saleRecipientsPercentTotal == 10000);
+        require(saleRecipientsPercentTotal == 10000, "NFTMKT::list: RECIPS_PERCENT_TOTAL_NOT_100");
 
         // Store the price
         prices[_contract][_tokenId] = _price;
