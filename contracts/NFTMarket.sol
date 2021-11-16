@@ -57,7 +57,8 @@ contract NFTMarket is IERC721Receiver {
      * tokenId
      * price in wei
      */
-    //TODO Consider modularizing pricing strategies to support auctions, FOMO ramps, pricing tranches
+     //TODO Should this mapping be contained in a mapping (listingAddress => IERC721)?
+     //TODO Consider modularizing pricing strategies to support auctions, FOMO ramps, pricing tranches
     mapping(IERC721 => mapping(uint256 => uint256)) public prices;
 
     /**
