@@ -8,11 +8,11 @@
  * TODO: Find a solution for local chain.
  */
 
-const rinkebyJBDirectory = require(`@jbx-protocol/contracts/deployments/rinkeby/JBDirectory.json`);
+const rinkebyTerminalV1 = require(`@jbx-protocol/contracts/deployments/rinkeby/TerminalV1.json`);
 
-const getJBDirectoryAddress = (chainId) => {
+const getTerminalV1Address = (chainId) => {
   if (chainId == 4) {
-    return rinkebyJBDirectory.address;
+    return rinkebyTerminalV1.address;
   }
 
   throw Error(`Chain ID ${chainId} is not yet supported.`);
@@ -23,14 +23,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
 
-  const jbDirectoryAddress = getJBDirectoryAddress(chainId);
+  const terminalV1Address = getTerminalV1Address(chainId);
   console.log(
-    `Deploying Juice NFT Market with Chain ID {${chainId}} and JBDirectory address ${jbDirectoryAddress}`,
+    `Deploying Juice NFT Market with Chain ID {${chainId}} and TerminalV1 address ${terminalV1Address}`,
   );
 
   await deploy('NFTMarket', {
     from: deployer,
-    args: [jbDirectoryAddress],
+    args: [terminalV1Address],
     log: true,
     skipIfAlreadyDeployed: true,
   });
