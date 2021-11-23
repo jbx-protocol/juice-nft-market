@@ -103,7 +103,7 @@ contract NFTMarket is IERC721Receiver {
     );
 
     /**
-     * @notice Creates an instance of NFTMKT. Anyone can permissionlesly list their NFTs on this NFTMKT instance.
+     * @notice Creates an instance of NFTMKT. Any address may permissionlesly list their NFTs on this NFTMKT instance.
      * @dev Frontends can filter listed NFTs for those relevant to a specific project, or listed by a particular address.
      * @param _terminalDirectory A directory of a project's current Juicebox terminal to receive payments in.
      */
@@ -113,8 +113,8 @@ contract NFTMarket is IERC721Receiver {
 
     /**
      * @notice List NFT in the NFTMKT and define who will receive project tokens resulting from a sale.
-     * @dev Must call `approve` on the 721 contract before calling `list` on NFTMKT
-     * @dev `SaleReceipients` are validated to add up to no more than 100%.
+     * @dev Listing address must `approve` the NFTMKT contract address on the 721 contract before calling `list` on NFTMKT, so the NFTMKT can move purchased NFTs.
+     * @dev `_receipients` are validated to sum to no more than 100%.
      * @param _contract The contract that issued the listed NFT.
      * @param _tokenId The tokenId of the listed NFT.
      * @param _recipients An array of `SaleRecipient` that will receive project tokens issued in response to a sale.
