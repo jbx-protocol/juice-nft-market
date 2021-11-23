@@ -21,7 +21,7 @@ struct SaleRecipient {
  * @title NFTMKT
  * @author @nnnnicholas & @mejango
  * @notice An NFT marketplace built for Juicebox projects.
- * @dev Compatible with ERC-721 NFTs only .
+ * @dev Compatible with ERC-721 NFTs only.
  */
 contract NFTMarket is IERC721Receiver {
     /**
@@ -43,26 +43,27 @@ contract NFTMarket is IERC721Receiver {
     
 
     /**
+     *  @notice Stores benificiaries of sale revenues and tokens
      *  address Address listing the NFT
-     *  IERC721 Contract address
-     *  uint TokenID
-     *  An array of SaleRecipients.
+     *  IERC721 NFT contract address
+     *  uint256 NFT tokenId
+     *  SaleRecipient[] Array of split receipients.
      */
     mapping(address => mapping(IERC721 => mapping(uint256 => SaleRecipient[])))
         public recipientsOf;
 
     /**
      * @notice Stores each NFT's price
-     * IERC721 contract address
-     * tokenId
-     * price in wei
+     * IERC721 NFT contract address
+     * uint256 NFT tokenId
+     * uint256 NFT price in wei
      */
      //TODO Should this mapping be contained in a mapping (listingAddress => IERC721)?
      //TODO Consider modularizing pricing strategies to support auctions, FOMO ramps, pricing tranches
     mapping(IERC721 => mapping(uint256 => uint256)) public prices;
 
     /**
-     * @notice Emitted when an NFT is successfully listed on NFTMKT.
+     * @notice Emitted when an NFT is listed on NFTMKT.
      * @param _from The address that listed the NFT.
      * @param _contract The NFT's contract address.
      * @param _tokenId The NFT's tokenId.
@@ -75,19 +76,19 @@ contract NFTMarket is IERC721Receiver {
         uint256 _price
     );
     /**
-     * @notice Emitted when an NFT is successfully delist from NFTMKT.
-     * @param _to The address that listed the NFT.
+     * @notice Emitted when an NFT is delisted from NFTMKT.
+     * @param _from The address that listed the NFT.
      * @param _contract The NFT's contract address.
      * @param _tokenId The NFT's tokenId.
      */
     event Delisted(
-        address indexed _to,
+        address indexed _from,
         IERC721 indexed _contract,
         uint256 indexed _tokenId
     );
 
     /**
-     * @notice Emitted when an NFT is successfully purchased from NFTMKT.
+     * @notice Emitted when an NFT is purchased from NFTMKT.
      * @param _from The address that listed the NFT.
      * @param _to The address that purchased the NFT.
      * @param _contract The NFT's contract address.
@@ -163,7 +164,7 @@ contract NFTMarket is IERC721Receiver {
             require(
                 _recipients[i].projectId != 0 ||
                     _recipients[i].beneficiary != address(0),
-                "NFTMKT::list: BENEF_IS_0."
+                'NFTMKT::list: BENEF_IS_0.'
 
             );
             // Set the recipients for this NFT listing to the passed `_recipients`.
@@ -171,7 +172,7 @@ contract NFTMarket is IERC721Receiver {
         }
 
         // If total sale recipients distribution is equal to 100%.
-        require(saleRecipientsPercentTotal == 10000, "NFTMKT::list: RECIPS_PERCENT_TOTAL_NOT_100");
+        require(saleRecipientsPercentTotal == 10000, 'NFTMKT::list: RECIPS_PERCENT_TOTAL_NOT_100');
 
         // Store the price
         prices[_contract][_tokenId] = _price;
@@ -195,7 +196,7 @@ contract NFTMarket is IERC721Receiver {
         // see https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
         // If SalesRecipients points at a project, call _terminal.pay(), if it pays out to an address, just transfer directly
 
-        require(prices[_contract][_tokenId] == msg.value, "Incorrect ");
+        require(prices[_contract][_tokenId] == msg.value, 'Incorrect ');
 
         // Get a reference to the sale recipients for this NFT.
         SaleRecipient[] memory _recipients = recipientsOf[_owner][_contract][
@@ -203,7 +204,7 @@ contract NFTMarket is IERC721Receiver {
         ];
 
         // There must be recipients.
-        require(_recipients.length > 0, "Incorrect ");
+        require(_recipients.length > 0, 'Incorrect ');
 
         // TODO Consider holding ETH and executing payout distribution upon `distribute` external call.
         // TODO `distributeAll`
@@ -281,7 +282,7 @@ contract NFTMarket is IERC721Receiver {
         );
 
         // Check that caller listed the NFT
-        require(recipientsOf[msg.sender][_contract][_tokenId].length > 0);
+        require(recipientsOf[msg.sender][_contract][_tokenId].length > 0, 'NFTMKT::delist: CALLER DID NOT LIST');
 
         // Remove from recipientsOf
         delete recipientsOf[msg.sender][_contract][_tokenId];
