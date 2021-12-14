@@ -127,9 +127,9 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         );
 
         // Must be at least 1 recipient.
-        require(_recipients.length > 0, 'NFTMKT::list: NO_RECIP'); //TODO Verify new error is ok. Old error: 'ModStore::setPayoutMods: NO_OP'
+        require(_recipients.length > 0, 'NFTMKT::list: NO_RECIP');
 
-        // Add up all `SaleRecipeint.percent` alottments to make sure they sum to no more than 100%.
+        // Add up all `SaleRecipeint.percent` allotments to make sure they sum to no more than 100%.
         uint256 saleRecipientsPercentTotal = 0;
 
         // Validate that recipients add up to no more than 100%.
@@ -156,25 +156,25 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         // If total sale recipients distribution is equal to 100%.
         require(saleRecipientsPercentTotal == 10000, 'NFTMKT::list: PERCENT_NOT_100');
 
-        // Store the price //TODO Should store price as prices[listingAddress][_contract][_tokenId] ?
+        // Store the price 
+        // TODO Should we store price as prices[listingAddress][_contract][_tokenId] instead? 
+        // Consider: Address A lists the NFT, transfers to Address B, who has already given unlimited allowance for the same NFT contract to NFTMKT. Address A's listing price will still be active. 
         prices[_contract][_tokenId] = _price;
 
         emit Listed(msg.sender, _contract, _tokenId, _recipients, _price);
     }
 
     /**
-     *
+     * @notice Routes funds from purchase to the preconfigured recipients. 
+     * @dev If SalesRecipients points at a project, this function calls _terminal.pay(). If SaleRecipients points to an address, this function transfers ETH to that address directly.
+     * Similar logic to https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
      */
     function purchase(
         IERC721 _contract,
         uint256 _tokenId,
         address _owner
     ) external payable nonReentrant{
-        // TODO add reentrancy guard
-        // must route funds received from buyer to the preconfigured recipients. Logic for this can be very similar to the _distributeToPayoutMods
-        // see https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
-        // If SalesRecipients points at a project, call _terminal.pay(), if it pays out to an address, just transfer directly
-
+        // `purchase` must be called with precise sale price value
         require(prices[_contract][_tokenId] == msg.value, 'Incorrect ');
 
         // Get a reference to the sale recipients for this NFT.
