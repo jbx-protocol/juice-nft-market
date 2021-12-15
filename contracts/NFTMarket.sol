@@ -175,13 +175,13 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         address _owner
     ) external payable nonReentrant{
         // `purchase` must be called with precise sale price value
-        require(prices[_contract][_tokenId] == msg.value, 'Incorrect ');
+        require(prices[_contract][_tokenId] == msg.value, 'NFTMKT::purchase: WRONG_PRICE');
 
         // Get a reference to the sale recipients for this NFT.
         SaleRecipient[] memory _recipients = recipientsOf[_owner][_contract][_tokenId];
 
         // There must be recipients.
-        require(_recipients.length > 0, 'Incorrect ');
+        require(_recipients.length > 0, 'NFTMKT::purchase: NO_RECIPIENTS');
 
         // TODO Consider holding ETH and executing payout distribution upon `distribute` external call.
         // TODO `distributeAll`
