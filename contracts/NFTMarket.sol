@@ -29,6 +29,24 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     */
     ITerminalDirectory public immutable terminalDirectory;
 
+    // ERRORS //
+    ///@notice Emitted when an address is not approved to move this NFT.
+    error Unapproved();
+    ///@notice Emitted when there is not at least 1 recipient.
+    error NoRecipients();
+    ///@notice Emitted when a recipient's percent is 0.
+    error RecipientPercentZero();
+    ///@notice Emitted when the sum of percent values exceeds 10000.
+    error PercentExceeded();
+    ///@notice Emitted when a projectId is not specified and the beneficiary is the zero address.
+    error BeneficiaryIsZero();
+    ///@notice Emitted when the sum of the sale recipients' distribution is not equal to 100%.
+    error PercentNot100();
+    ///@notice Emitted when the amount of ETH sent does not match the price of the listed NFT.
+    error WrongPrice();
+    ///@notice Emitted when the Terminal is the zero address.
+    error TerminalNotFound();
+
     // TODO: Reuse the same SaleRecipient by using hashes of SaleRecipient as keys in a mapping instead
     // All sale recipients for each project ID's configurations.
     // mapping(bytes32 => SaleRecipient[]) saleRecipients; //declare first
@@ -119,53 +137,50 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         uint256 _price,
         SaleRecipient[] memory _recipients
     ) external nonReentrant {
-        // NFTMKT must be approved to manage this NFT or all NFTs from this contract
-        require(
-            _contract.getApproved(_tokenId) == address(this) ||
-                _contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this)),
-            'NFTMKT::list: NOT_APPROVED'
-        );
+        // NFTMKT must be approved to manage this NFT or all NFTs from this contract.
+        if (
+            _contract.getApproved(_tokenId) != address(this) &&
+            !_contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this))
+        ) revert Unapproved();
 
-        // Must be at least 1 recipient.
-        require(_recipients.length > 0, 'NFTMKT::list: NO_RECIP');
+        // There must be at least 1 recipient.
+        if (_recipients.length <= 0) revert NoRecipients();
 
         // Add up all `SaleRecipeint.percent` allotments to make sure they sum to no more than 100%.
         uint256 saleRecipientsPercentTotal = 0;
 
         // Validate that recipients add up to no more than 100%.
         for (uint256 i = 0; i < _recipients.length; i++) {
-            // The percent should be greater than 0.
-            require(_recipients[i].percent > 0, 'NFTMKT::list: RECIPS_PERCENT_0');
+            // Each recipient's percent must be greater than 0.
+            if (_recipients[i].percent <= 0) revert RecipientPercentZero();
 
             // Add to the total percents.
             saleRecipientsPercentTotal = saleRecipientsPercentTotal + _recipients[i].percent;
 
-            // The total percent should be less than 10000.
-            require(saleRecipientsPercentTotal <= 10000, 'NFTMKT::list: PERCENT_EXCEEDED');
+            // The sum of percent values must not exceed 10000.
+            if (saleRecipientsPercentTotal > 10000) revert PercentExceeded();
 
-            // If a projectId isn't specified, the beneficiary shouldn't be the zero address.
-            // If a projectId is specified, a beneficiary of zero will send tokens to the purchaser.
-            require(
-                _recipients[i].projectId != 0 || _recipients[i].beneficiary != address(0),
-                'NFTMKT::list: BENEF_IS_0.'
-            );
+            // If projectId is not specified, the beneficiary must not be the zero address.
+            if (_recipients[i].projectId == 0 && _recipients[i].beneficiary == address(0))
+                revert BeneficiaryIsZero();
+
             // Add this recipient to the recipients list for this NFT listing.
             recipientsOf[msg.sender][_contract][_tokenId].push(_recipients[i]);
         }
 
-        // If total sale recipients distribution is equal to 100%.
-        require(saleRecipientsPercentTotal == 10000, 'NFTMKT::list: PERCENT_NOT_100');
+        // Sum of sale recipients' distribution must equal 100%.
+        if (saleRecipientsPercentTotal != 10000) revert PercentNot100();
 
-        // Store the price 
-        // TODO Should we store price as prices[listingAddress][_contract][_tokenId] instead? 
-        // Consider: Address A lists the NFT, transfers to Address B, who has already given unlimited allowance for the same NFT contract to NFTMKT. Address A's listing price will still be active. 
+        // Store the price
+        // TODO Should we store price as prices[listingAddress][_contract][_tokenId] instead?
+        // Consider: Address A lists the NFT, transfers to Address B, who has already given unlimited allowance for the same NFT contract to NFTMKT. Address A's listing price will still be active.
         prices[_contract][_tokenId] = _price;
 
         emit Listed(msg.sender, _contract, _tokenId, _recipients, _price);
     }
 
     /**
-     * @notice Routes funds from purchase to the preconfigured recipients. 
+     * @notice Routes funds from purchase to the preconfigured recipients.
      * @dev If SalesRecipients points at a project, this function calls _terminal.pay(). If SaleRecipients points to an address, this function transfers ETH to that address directly.
      * Similar logic to https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
      */
@@ -173,15 +188,15 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         IERC721 _contract,
         uint256 _tokenId,
         address _owner
-    ) external payable nonReentrant{
-        // `purchase` must be called with precise sale price value
-        require(prices[_contract][_tokenId] == msg.value, 'NFTMKT::purchase: WRONG_PRICE');
+    ) external payable nonReentrant {
+        // The amount of ETH sent must match the price of the listed NFT.
+        if (prices[_contract][_tokenId] != msg.value) revert WrongPrice();
 
         // Get a reference to the sale recipients for this NFT.
         SaleRecipient[] memory _recipients = recipientsOf[_owner][_contract][_tokenId];
 
         // There must be recipients.
-        require(_recipients.length > 0, 'NFTMKT::purchase: NO_RECIPIENTS');
+        if (_recipients.length <= 0) revert NoRecipients();
 
         // TODO Consider holding ETH and executing payout distribution upon `distribute` external call.
         // TODO `distributeAll`
@@ -200,8 +215,8 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
                 if (_recipient.projectId > 0) {
                     // Get a reference to the Juicebox terminal being used.
                     ITerminal _terminal = terminalDirectory.terminalOf(_recipient.projectId);
-                    // If the project has a terminal
-                    require(_terminal != ITerminal(address(0)), 'Terminal::pay: TERM_0');
+                    // Project must have a terminal.
+                    if (_terminal == ITerminal(address(0))) revert TerminalNotFound();
                     // Pay the terminal what this recipient is owed.
                     _terminal.pay{value: _recipientCut}(
                         _recipient.projectId,
@@ -230,19 +245,14 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
      * @notice Cancels NFT listing on NFTMKT. Can only be called on an NFT by the address that listed it.
      */
     function delist(IERC721 _contract, uint256 _tokenId) external nonReentrant {
-        // Check that this contract is approved to move the NFT
-        // TODO consider if we need this require. perhaps what matters more is that the calling address is approved, rather than the NFTMKT?
-        require(
-            _contract.getApproved(_tokenId) == address(this) ||
-                _contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this)),
-            'NFTMKT::delist: NOT_APPROVED'
-        );
+        // Caller must have listed the NFT
+        if (recipientsOf[msg.sender][_contract][_tokenId].length <= 0) revert Unapproved();
 
-        // Check that caller listed the NFT
-        require(
-            recipientsOf[msg.sender][_contract][_tokenId].length > 0,
-            'NFTMKT::delist: CALLER DID NOT LIST'
-        );
+        // NFTMKT must be approved to manage this NFT,
+        if (
+            _contract.getApproved(_tokenId) != address(this) ||
+            !_contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this))
+        ) revert Unapproved();
 
         // Remove from recipientsOf
         delete recipientsOf[msg.sender][_contract][_tokenId];
