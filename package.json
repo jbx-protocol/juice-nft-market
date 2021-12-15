@@ -1,59 +1,60 @@
 {
-  "name": "@jbx-protocol/nft-market",
-  "version": "0.0.1",
-  "description": "NFT Market is a NFT marketplace designed for Juicebox Projects.",
-  "author": "nnnnicholas & mejango",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jbx-protocol/NFTMKT/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jbx-protocol/juice-nft-market.git"
-  },
-  "keywords": [
-    "nft",
-    "marketplace",
-    "erc721",
-    "solidity",
-    "juicebox",
-    "ethereum",
-    "evm",
-    "smart-contract"
-  ],
-  "homepage": "https://github.com/jbx-protocol/juice-nft-market",
-  "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.11",
-    "@nomiclabs/hardhat-etherscan": "^2.1.7",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "@paulrberg/contracts": "^3.7.0",
-    "chai": "^4.3.4",
-    "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.5.1",
-    "hardhat": "^2.6.8",
-    "hardhat-deploy": "^0.9.10",
-    "hardhat-gas-reporter": "^1.0.4"
-  },
-  "dependencies": {
-    "@chainlink/contracts": "^0.2.2",
-    "@ethersproject/bignumber": "^5.5.0",
-    "@jbx-protocol/contracts": "^0.0.6",
-    "@openzeppelin/contracts": "^4.3.3",
-    "dotenv": "^10.0.0",
-    "evm-bn": "^1.1.1",
-    "prb-math": "^2.4.1",
-    "prb-math.js": "^1.0.2"
-  },
-  "scripts": {
-    "chain": "hardhat node",
-    "test": "hardhat test --network localhost",
-    "test:gas": "REPORT_GAS=true hardhat test --network localhost",
-    "test:unit": "mocha -r esm --grep \"Unit\" --bail",
-    "test:integration": "mocha -r esm --grep \"Integration\" --bail",
-    "clean": "rimraf ./cache && rimraf ./artifacts",
-    "compile-force": "yarn cleangit && __DANGEROUS_OVM_IGNORE_ERRORS__=true hardhat compile",
-    "compile": "yarn clean && hardhat compile",
-    "pretty": "prettier --write \"./**/*.{js,jsx,json}\"",
-    "lint": "solhint contracts/** --fix"
-  }
+    "name": "@jbx-protocol/nft-market",
+    "version": "0.0.1",
+    "description": "NFT Market is a NFT marketplace designed for Juicebox Projects.",
+    "author": "nnnnicholas & mejango",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/jbx-protocol/NFTMKT/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jbx-protocol/juice-nft-market.git"
+    },
+    "keywords": [
+        "nft",
+        "marketplace",
+        "erc721",
+        "solidity",
+        "juicebox",
+        "ethereum",
+        "evm",
+        "smart-contract"
+    ],
+    "homepage": "https://github.com/jbx-protocol/juice-nft-market",
+    "devDependencies": {
+        "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.11",
+        "@nomiclabs/hardhat-etherscan": "^2.1.7",
+        "@nomiclabs/hardhat-waffle": "^2.0.1",
+        "@paulrberg/contracts": "^3.7.0",
+        "chai": "^4.3.4",
+        "ethereum-waffle": "^3.4.0",
+        "ethers": "^5.5.1",
+        "hardhat": "^2.6.8",
+        "hardhat-deploy": "^0.9.10",
+        "hardhat-gas-reporter": "^1.0.4",
+        "solhint": "^3.3.6"
+    },
+    "dependencies": {
+        "@chainlink/contracts": "^0.2.2",
+        "@ethersproject/bignumber": "^5.5.0",
+        "@jbx-protocol/contracts": "^0.0.6",
+        "@openzeppelin/contracts": "^4.3.3",
+        "dotenv": "^10.0.0",
+        "evm-bn": "^1.1.1",
+        "prb-math": "^2.4.1",
+        "prb-math.js": "^1.0.2"
+    },
+    "scripts": {
+        "chain": "hardhat node",
+        "test": "hardhat test --network localhost",
+        "test:gas": "REPORT_GAS=true hardhat test --network localhost",
+        "test:unit": "mocha -r esm --grep \"Unit\" --bail",
+        "test:integration": "mocha -r esm --grep \"Integration\" --bail",
+        "clean": "rimraf ./cache && rimraf ./artifacts",
+        "compile-force": "yarn cleangit && __DANGEROUS_OVM_IGNORE_ERRORS__=true hardhat compile",
+        "compile": "yarn clean && hardhat compile",
+        "pretty": "prettier --write \"./**/*.{js,jsx,json}\"",
+        "lint": "solhint contracts/** --fix"
+    }
 }
