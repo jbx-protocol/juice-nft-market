@@ -140,7 +140,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         // NFTMKT must be approved to manage this NFT or all NFTs from this contract.
         if (
             _contract.getApproved(_tokenId) != address(this) &&
-            _contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this))
+            !_contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this))
         ) revert Unapproved();
 
         // There must be at least 1 recipient.
