@@ -19,7 +19,7 @@ struct SaleRecipient {
 
 /**
  * @title NFTMKT
- * @author @nnnnicholas & @mejango
+ * @author @nnnnicholas & @me_jango
  * @notice An NFT marketplace built for Juicebox projects.
  * @dev Compatible with ERC-721 NFTs only.
  */
