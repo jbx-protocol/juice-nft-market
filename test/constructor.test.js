@@ -9,14 +9,15 @@ import rinkebyTerminalV1 from '@jbx-protocol/contracts/deployments/rinkeby/Termi
 describe('Constructor', () => {
     async function setup() {
         const [deployer, mockDeployer] = await ethers.getSigners();
-        const mockTerminalV1 = await deployMockContract(mockDeployer, rinkebyTerminalV1.abi); // deploy mock TerminalV1
-        const nftMarket = await deployContract('NFTMarket', [mockTerminalV1.address]); // deploy NFTMarket
+        const mockTerminalV1 = await deployMockContract(deployer, rinkebyTerminalV1.abi);
+        const nftMarketFactory = await ethers.getContractFactory('NFTMarket');
+        const nftMarket = await nftMarketFactory.deploy(mockTerminalV1.address);
         return { deployer, mockTerminalV1, nftMarket };
     }
 
     it('should deploy the NFTMarket contract', async () => {
         const { deployer, mockTerminalV1, nftMarket } = await setup();
-        expect(nftMarket.terminalDirectory).to.equal(mockTerminalV1.address);
+        expect(await nftMarket.terminalDirectory()).to.equal(mockTerminalV1.address);
     });
 });
 

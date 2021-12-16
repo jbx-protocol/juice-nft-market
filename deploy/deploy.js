@@ -11,10 +11,10 @@
 const rinkebyTerminalV1 = require(`@jbx-protocol/contracts/deployments/rinkeby/TerminalV1.json`);
 
 const getTerminalV1Address = (chainId) => {
-    if (chainId == 4) {
+    if (chainId == 4 || chainId == 31337) { // added the || chainId == 31337 to fix the test
         return rinkebyTerminalV1.address;
     }
-
+    
     throw Error(`Chain ID ${chainId} is not yet supported.`);
 };
 
