@@ -111,3 +111,7 @@ node_modules
 #Hardhat files
 cache
 artifacts
+
+## Build generated
+build/
+DerivedData/
