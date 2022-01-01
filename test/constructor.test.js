@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-// const { deployContract } = waffle; //don't need
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import rinkebyTerminalV1 from '@jbx-protocol/contracts/deployments/rinkeby/TerminalV1.json';
@@ -17,7 +16,14 @@ describe('Constructor', () => {
 
     it('should deploy the NFTMarket contract', async () => {
         const { deployer, mockTerminalV1, nftMarket } = await setup();
-        expect(await nftMarket.terminalDirectory()).to.equal(mockTerminalV1.address);
+        expect(await nftMarket.resolvedAddress).to.not.equal(ethers.constants.AddressZero);
+        expect(await nftMarket.resolvedAddress).to.not.equal(null);
+        expect(await nftMarket.resolvedAddress).to.not.equal(undefined);
     });
+
+    it('should set the market\'s terminaldirectory to the address passed in the contructor', async()=>{
+        const { deployer, mockTerminalV1, nftMarket } = await setup();
+        expect(await nftMarket.terminalDirectory()).to.equal(mockTerminalV1.address);
+    })
 });
 
