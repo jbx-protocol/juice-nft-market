@@ -9,6 +9,11 @@ NFT Market is a NFT marketplace designed for Juicebox Projects.
 - Fill in fields in `.example.env`. Save and rename the file `.env`.
 <!-- - Call `hh deploy --network NETWORK_NAME` where NETWORK_NAME is the network of your choice (e.g., mainnet, rinkeby) -->
 
+## Testing
+- Call `yarn chain`, then
+- Call `yarn test:unit`
+
+
 ## Objectives
 - Allow people to post and sell products/art that route proceeds to various preprogrammed addresses and juicebox project treasuries.
 - Allow people to route treasury tokens that are minted from sales directed to a project’s treasury to preconfigured addresses.

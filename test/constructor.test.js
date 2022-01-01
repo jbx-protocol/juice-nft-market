@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-const { deployContract } = waffle;
+// const { deployContract } = waffle; //don't need
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import rinkebyTerminalV1 from '@jbx-protocol/contracts/deployments/rinkeby/TerminalV1.json';
