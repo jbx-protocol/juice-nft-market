@@ -3,7 +3,6 @@ import { ethers, waffle } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import rinkebyTerminalV1 from '@jbx-protocol/contracts/deployments/rinkeby/TerminalV1.json';
-import ERC721 from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 
 describe('Constructor', () => {
     async function setup() {
