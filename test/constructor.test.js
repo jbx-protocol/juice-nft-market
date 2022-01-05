@@ -13,14 +13,14 @@ describe('Constructor', () => {
         return { deployer, mockTerminalV1, nftMarket };
     }
 
-    it('should deploy the NFTMarket contract', async () => {
+    it('Should deploy the NFTMarket contract', async () => {
         const { deployer, mockTerminalV1, nftMarket } = await setup();
         expect(await nftMarket.resolvedAddress).to.not.equal(ethers.constants.AddressZero);
         expect(await nftMarket.resolvedAddress).to.not.equal(null);
         expect(await nftMarket.resolvedAddress).to.not.equal(undefined);
     });
 
-    it('should set the market\'s terminaldirectory to the address passed in the contructor', async () => {
+    it('Should set the market\'s terminaldirectory to the address passed in the contructor', async () => {
         const { deployer, mockTerminalV1, nftMarket } = await setup();
         expect(await nftMarket.terminalDirectory()).to.equal(mockTerminalV1.address);
     })
