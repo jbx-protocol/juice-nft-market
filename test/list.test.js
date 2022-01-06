@@ -9,13 +9,13 @@ describe('List', () => {
         //
         const [deployer, nftDeployer] = await ethers.getSigners();
         
-        // Deploy nftMarket
+        // Deploy nftMarket. `deployer` is the deployer/owner
         const mockTerminalV1 = await deployMockContract(deployer, rinkebyTerminalV1.abi);
         const nftMarketFactory = await ethers.getContractFactory('NFTMarket');
         const nftMarket = await nftMarketFactory.deploy(mockTerminalV1.address);
         
-        // Deploy NFT
-        const nftFactory = await ethers.getContractFactory('ERC721');
+        // Deploy ERC721. `nftDeployer` is the deployer/owner.
+        const nftFactory = await ethers.getContractFactory('ERC721', nftDeployer);
         const nft = await nftFactory.deploy('Name', 'NAME');
 
         // Mint NFT from nftDeployer to nftDeployer
