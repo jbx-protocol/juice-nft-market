@@ -1,12 +1,13 @@
 import { expect } from 'chai';
-import { ethers, waffle } from 'hardhat';
+import { ethers, waffle, deployments } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import rinkebyTerminalV1 from '@jbx-protocol/contracts/deployments/rinkeby/TerminalV1.json';
+import { isConstructorDeclaration } from 'typescript';
 
 describe('List', () => {
     async function setup() {
-        //
+        //Get named addresses
         const [deployer, nftDeployer] = await ethers.getSigners();
 
         // Deploy nftMarket. `deployer` is the deployer/owner
@@ -15,7 +16,7 @@ describe('List', () => {
         const nftMarket = await nftMarketFactory.deploy(mockTerminalV1.address);
 
         // Deploy ERC721. `nftDeployer` is the deployer/owner.
-        const nftFactory = await ethers.getContractFactory('ERC721', nftDeployer);
+        const nftFactory = await ethers.getContractFactory('ERC721');
         const nft = await nftFactory.deploy('Name', 'NAME');
 
         // Mint NFT from nftDeployer to nftDeployer
