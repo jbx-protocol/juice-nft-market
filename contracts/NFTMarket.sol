@@ -19,7 +19,7 @@ struct SaleRecipient {
 
 /**
  * @title NFTMKT
- * @author @nnnnicholas & @me_jango
+ * @author @juicebox
  * @notice An NFT marketplace built for Juicebox projects.
  * @dev Compatible with ERC-721 NFTs only.
  */
@@ -139,6 +139,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     ) external nonReentrant {
         // NFTMKT must be approved to manage this NFT or all NFTs from this contract.
         if (
+            _contract.ownerOf(_tokenId) != msg.sender &&
             _contract.getApproved(_tokenId) != address(this) &&
             !_contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this))
         ) revert Unapproved();

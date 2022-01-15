@@ -50,7 +50,7 @@
     },
     "scripts": {
         "build": "waffle",
-        "chain": "hardhat node --network hardhat",
+        "chain": "hardhat node --network hardhat --no-deploy",
         "test:gas": "REPORT_GAS=true hardhat test --network localhost",
         "test:unit": "mocha './test/*.test.js' -r esm --bail",
         "clean": "rimraf ./cache && rimraf ./artifacts",
