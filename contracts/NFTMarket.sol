@@ -43,7 +43,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     ///@notice Emitted when the sum of the sale recipients' distribution is not equal to 100%.
     error PercentNot100();
     ///@notice Emitted when the amount of ETH sent does not match the price of the listed NFT.
-    error WrongPrice();
+    error Insufficient();
     ///@notice Emitted when the Terminal is the zero address.
     error TerminalNotFound();
 
@@ -129,6 +129,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
      * @dev `_receipients` are validated to sum to no more than 100%.
      * @param _contract The contract that issued the listed NFT.
      * @param _tokenId The tokenId of the listed NFT.
+     * @param _price The price in wei.
      * @param _recipients An array of `SaleRecipient` that will receive project tokens issued in response to a sale.
      **/
     function list(
@@ -197,7 +198,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         address _owner
     ) external payable nonReentrant {
         // The amount of ETH sent must match the price of the listed NFT.
-        if (prices[_contract][_tokenId] != msg.value) revert WrongPrice();
+        if (prices[_contract][_tokenId] != msg.value) revert Insufficient();
 
         // Get a reference to the sale recipients for this NFT.
         SaleRecipient[] memory _recipients = recipientsOf[_owner][_contract][_tokenId];
