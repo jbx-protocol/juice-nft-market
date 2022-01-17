@@ -137,9 +137,15 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         uint256 _price,
         SaleRecipient[] memory _recipients
     ) external nonReentrant {
-        // NFTMKT must be approved to manage this NFT or all NFTs from this contract.
+        // Listing address must be owner or approved to manage this NFT.
         if (
             _contract.ownerOf(_tokenId) != msg.sender &&
+            _contract.getApproved(_tokenId) != msg.sender &&
+            !_contract.isApprovedForAll(_contract.ownerOf(_tokenId), msg.sender)
+        ) revert Unapproved();
+
+        // NFTMKT must be approved to manage this NFT.
+        if (
             _contract.getApproved(_tokenId) != address(this) &&
             !_contract.isApprovedForAll(_contract.ownerOf(_tokenId), address(this))
         ) revert Unapproved();
