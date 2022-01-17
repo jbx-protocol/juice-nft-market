@@ -56,37 +56,33 @@ describe('List', () => {
         await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.be.revertedWith('Unapproved()');
     })
 
-    it("Should revert if listed by non-owner and Market IS approved", async () => {
+    it("Should revert if listed by unapproved non-owner and Market IS approved", async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
         await nft.connect(nftDeployer).approve(nftMarket.address, 1);
         await nft.connect(nftDeployer).setApprovalForAll(nftMarket.address, true);
         await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.be.revertedWith('Unapproved()');
     })
 
-    it("Should revert if listed by non-owner and Market is NOT approved", async () => {
+    it("Should revert if listed by unapproved non-owner and Market is NOT approved", async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
         await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.be.revertedWith('Unapproved()');
     })
 
-    // it('Should succeed if listed by an approved address and Market IS approved', async () => {
-    //     const { deployer, nftDeployer, nftMarket, nft } = await setup();
-    //     await nft.connect(nftDeployer).approve(nftMarket.address, 1);
-    //     await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.not.be.reverted;
-    // })
+    // Do we think this is a good idea?
+    it('Should succeed if listed by an approved address and Market IS approved for all', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(deployer.address, 1);
+        await nft.connect(nftDeployer).setApprovalForAll(nftMarket.address, true);
+        await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.not.be.reverted;
+    })
+    
+    // Do we think this is a good idea?
+    it('Should succeed if listed by an address approved for all and Market IS approved', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(nftMarket.address, 1);
+        await nft.connect(nftDeployer).setApprovalForAll(deployer.address, true);
+        await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.not.be.reverted;
+    })
 
-    // it('Should succeed if listed by address approved for all tokens', async () => {
-    //     const { deployer, nftDeployer, nftMarket, nft } = await setup();
-    //     await nft.connect(nftDeployer).setApprovalForAll(nftMarket.address, 1); // approve nftMarket
-    //     await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.not.be.reverted;
-    // })
 
-    // it('Should fail if token does not belong to listing address and is is not app', async () => {
-    //     const { deployer, nftDeployer, nftMarket, nft } = await setup();
-    // expect(await nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.be.revertedWith('Unapproved()');
-    // });
-
-    // it('Should fail if token allowance is not set.', async () => {
-    //     const { deployer, nftDeployer, nftMarket, nft } = await setup();
-
-    // });
 });
