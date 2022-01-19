@@ -30,6 +30,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     ITerminalDirectory public immutable terminalDirectory;
 
     // ERRORS //
+
     ///@notice Emitted when an address is not approved to move this NFT.
     error Unapproved();
     ///@notice Emitted when there is not at least 1 recipient.
@@ -60,11 +61,11 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     // }
 
     /**
-     *  @notice Stores benificiaries of sale revenues and tokens
+     *  @notice Stores one or many beneficiaries between whom NFT sale revenues should be split
      *  address Address listing the NFT
      *  IERC721 NFT contract address
      *  uint256 NFT tokenId
-     *  SaleRecipient[] Array of split receipients.
+     *  SaleRecipient[] Array of sale split receipients.
      */
     mapping(address => mapping(IERC721 => mapping(uint256 => SaleRecipient[]))) public recipientsOf;
 
@@ -77,6 +78,8 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     //TODO Should this mapping be contained in a mapping (listingAddress => IERC721)?
     //TODO Consider modularizing pricing strategies to support auctions, FOMO ramps, pricing tranches
     mapping(IERC721 => mapping(uint256 => uint256)) public prices;
+
+    // EVENTS //
 
     /**
      * @notice Emitted when an NFT is listed on NFTMKT.
@@ -115,7 +118,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     );
 
     /**
-     * @notice Creates an instance of NFTMKT. Any address may permissionlesly list their NFTs on this NFTMKT instance.
+     * @notice Creates an instance of NFTMKT. Any address may permissionlesly list their NFTs on the same NFTMKT instance.
      * @dev Frontends can filter listed NFTs for those relevant to a specific project, or listed by a particular address.
      * @param _terminalDirectory A directory of a project's current Juicebox terminal to receive payments in.
      */
@@ -124,9 +127,11 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
     }
 
     /**
-     * @notice List NFT in the NFTMKT and define who will receive project tokens resulting from a sale.
-     * @dev Listing address must `approve` the NFTMKT contract address on the 721 contract before calling `list` on NFTMKT, so the NFTMKT can move purchased NFTs.
-     * @dev `_receipients` are validated to sum to no more than 100%.
+     * @notice List NFT in the NFTMKT and define who will receive sale proceeds.
+     * @dev Listing address must `approve` the NFTMKT contract address on the 721 contract before calling `list` on NFTMKT, so NFTMKT can move purchased NFTs.
+     * @dev `_receipients` are validated to sum to no more than 100%, which is represented as 10000.
+     * @dev If an element of `_recipients` projectId is zero, revenue (ETH) from the NFT sale owed to that receipient will be sent to their `_beneficiary` address.
+     * @dev If an element of `_recipients` projectId is greater than zero, revenue (ETH) from the NFT sale owed to that recipient will be sent to the Juicebox Project's Terminal. Project tokens issued will be transferred to the the `_beneficiary` address, unless it is the 0x0000 address, in which case project tokens will be transferred to the NFT purchaser.
      * @param _contract The contract that issued the listed NFT.
      * @param _tokenId The tokenId of the listed NFT.
      * @param _price The price in wei.
@@ -154,10 +159,10 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         // There must be at least 1 recipient.
         if (_recipients.length <= 0) revert NoRecipients();
 
-        // Add up all `SaleRecipeint.percent` allotments to make sure they sum to no more than 100%.
+        // Storage for recipient percentage validation.
         uint256 saleRecipientsPercentTotal = 0;
 
-        // Validate that recipients add up to no more than 100%.
+        // Validate that all `SaleRecipeint.percent` sum to no more than 10000 (100%).
         for (uint256 i = 0; i < _recipients.length; i++) {
             // Each recipient's percent must be greater than 0.
             if (_recipients[i].percent <= 0) revert RecipientPercentZero();
@@ -165,7 +170,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
             // Add to the total percents.
             saleRecipientsPercentTotal = saleRecipientsPercentTotal + _recipients[i].percent;
 
-            // The sum of percent values must not exceed 10000.
+            // The sum of percent values must not exceed 10000 (100%).
             if (saleRecipientsPercentTotal > 10000) revert PercentExceeded();
 
             // If projectId is not specified, the beneficiary must not be the zero address.
@@ -181,21 +186,22 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
 
         // Store the price
         // TODO Should we store price as prices[listingAddress][_contract][_tokenId] instead?
-        // Consider: Address A lists the NFT, transfers to Address B, who has already given unlimited allowance for the same NFT contract to NFTMKT. Address A's listing price will still be active.
+        // Consider: Address A lists the NFT and approves this one NFT, transfers to Address B, who has already given unlimited allowance for the same NFT contract to NFTMKT. Will Address A's listing price still be active?
         prices[_contract][_tokenId] = _price;
 
         emit Listed(msg.sender, _contract, _tokenId, _recipients, _price);
     }
 
     /**
-     * @notice Routes funds from purchase to the preconfigured recipients.
-     * @dev If SalesRecipients points at a project, this function calls _terminal.pay(). If SaleRecipients points to an address, this function transfers ETH to that address directly.
+     * @notice Transfers NFT from lister to buyer and routes funds from purchase to the preconfigured recipients.
+     * @dev If SaleRecipients points to an address, this function transfers ETH to that address directly.
+     * @dev If SalesRecipients points at a project, this function calls _terminal.pay().
      * Similar logic to https://github.com/jbx-protocol/juicehouse/blob/540f3037689ae74f2f97d95f9f28d88f69afd4a3/packages/hardhat/contracts/TerminalV1.sol#L1015
      */
     function purchase(
         IERC721 _contract,
         uint256 _tokenId,
-        address _owner
+        address _owner // TODO Is this necessary?
     ) external payable nonReentrant {
         // The amount of ETH sent must match the price of the listed NFT.
         if (prices[_contract][_tokenId] != msg.value) revert Insufficient();
@@ -206,8 +212,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         // There must be recipients.
         if (_recipients.length <= 0) revert NoRecipients();
 
-        // TODO Consider holding ETH and executing payout distribution upon `distribute` external call.
-        // TODO `distributeAll`
+        // TODO Consider holding ETH and executing payout distribution upon `distribute` external call to reduce gas per NFT.
 
         // Distribute ETH to all recipients.
         for (uint256 i = 0; i < _recipients.length; i++) {
@@ -228,7 +233,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
                     // Pay the terminal what this recipient is owed.
                     _terminal.pay{value: _recipientCut}(
                         _recipient.projectId,
-                        // If no beneficiary is specified, send the tokens to the msg.sender.
+                        // If no beneficiary is specified, send the tokens to the purchaser (msg.sender).
                         _recipient.beneficiary == address(0) ? msg.sender : _recipient.beneficiary,
                         _recipient.memo,
                         _recipient.preferUnstaked
@@ -245,6 +250,8 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
 
         // Delete the recipients.
         delete recipientsOf[_owner][_contract][_tokenId];
+
+        // TODO Delete price?
 
         emit Purchased(address(this), msg.sender, _contract, _tokenId, msg.value);
     }
