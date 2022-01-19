@@ -9,7 +9,7 @@ import { isConstructorDeclaration, OperationCanceledException } from 'typescript
 describe('List', () => {
     async function setup() {
         //Get named addresses
-        const [deployer, nftDeployer] = await ethers.getSigners();
+        const [deployer, nftDeployer, ...unnamedAddresses] = await ethers.getSigners();
 
         // Deploy nftMarket. `deployer` is the deployer/owner
         const mockTerminalV1 = await deployMockContract(deployer, rinkebyTerminalV1.abi);
@@ -22,7 +22,7 @@ describe('List', () => {
 
         // Mint NFT
         await nft.safeMint(nftDeployer.address, 1);
-        return { deployer, nftDeployer, mockTerminalV1, nftMarket, nft };
+        return { deployer, nftDeployer, unnamedAddresses, mockTerminalV1, nftMarket, nft };
     }
 
     function makeSaleReceipientArray(_percent, _beneficiary, _projectId) {
@@ -35,6 +35,21 @@ describe('List', () => {
                 projectId: _projectId,
             }
         ]
+    };
+
+    function makeSaleReceipientArrayWithTen(unnamedAddresses) {
+        let array = []
+        for (let i = 0; i < 10; i++) {
+            let saleRecipient = {
+                preferUnstaked: false,
+                percent: 10000 / 10,
+                beneficiary: unnamedAddresses[i].address,
+                memo: '',
+                projectId: 1,
+            }
+            array.push(saleRecipient)
+        }
+        return array;
     };
 
     it('Should succeed if listed by owner and Market IS approved', async () => {
@@ -113,7 +128,10 @@ describe('List', () => {
         await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(10000, ethers.constants.AddressZero, 1))).to.not.be.reverted;
     })
 
-
-
+    it('Should succeed with 10 saleRecipients', async () => {
+        const { deployer, nftDeployer, unnamedAddresses, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(nftMarket.address, 1);
+        await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArrayWithTen(unnamedAddresses))).to.not.be.reverted;
+    })
 
 });
