@@ -3,7 +3,7 @@ import { ethers, waffle, deployments } from 'hardhat';
 import { deployMockContract } from '@ethereum-waffle/mock-contract';
 
 import rinkebyTerminalV1 from '@jbx-protocol/contracts/deployments/rinkeby/TerminalV1.json';
-import { isConstructorDeclaration } from 'typescript';
+import { isConstructorDeclaration, OperationCanceledException } from 'typescript';
 
 
 describe('List', () => {
@@ -51,8 +51,6 @@ describe('List', () => {
 
     it('Should revert if listed by owner and Market is NOT approved', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
-        // console.log(await nft.getApproved(1))
-        // console.log(await nft.isApprovedForAll(nftDeployer.address, deployer.address));
         await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.be.revertedWith('Unapproved()');
     })
 
@@ -68,21 +66,54 @@ describe('List', () => {
         await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.be.revertedWith('Unapproved()');
     })
 
-    // Do we think this is a good idea?
+    // TODO Do we think this is a good idea?
     it('Should succeed if listed by an approved address and Market IS approved for all', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
         await nft.connect(nftDeployer).approve(deployer.address, 1);
         await nft.connect(nftDeployer).setApprovalForAll(nftMarket.address, true);
         await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.not.be.reverted;
     })
-    
-    // Do we think this is a good idea?
+
+    // TODO Do we think this is a good idea?
     it('Should succeed if listed by an address approved for all and Market IS approved', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
         await nft.connect(nftDeployer).approve(nftMarket.address, 1);
         await nft.connect(nftDeployer).setApprovalForAll(deployer.address, true);
         await expect(nftMarket.list(nft.address, 1, 1, makeSaleReceipientArray(10000, deployer.address, 1))).to.not.be.reverted;
     })
+
+    it('Should revert if recipient percentage is 0', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(nftMarket.address, 1);
+        await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(0, deployer.address, 1))).to.be.revertedWith('RecipientPercentZero()');
+    })
+
+    it('Should revert if sum of percentages exceeds 10000', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(nftMarket.address, 1);
+        await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(10001, deployer.address, 1))).to.be.revertedWith('PercentExceeded()');
+    })
+
+    it('Should revert if sum of percentages is less than 10000', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(nftMarket.address, 1);
+        await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(9999, deployer.address, 1))).to.be.revertedWith('PercentNot100()');
+    })
+
+    it('Should revert if benefiiary is the zero address and project 0 is specified', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(nftMarket.address, 1);
+        await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(10000, ethers.constants.AddressZero, 0))).to.be.revertedWith('BeneficiaryIsZero()');
+    })
+
+    // TODO Do we think this is a good idea?
+    it('Should succeed if benefiiary is the zero address and a project is specified', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await nft.connect(nftDeployer).approve(nftMarket.address, 1);
+        await expect(nftMarket.connect(nftDeployer).list(nft.address, 1, 1, makeSaleReceipientArray(10000, ethers.constants.AddressZero, 1))).to.not.be.reverted;
+    })
+
+
 
 
 });
