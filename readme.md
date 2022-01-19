@@ -10,5 +10,6 @@ NFT Market is a NFT marketplace designed for Juicebox Projects.
   
 ## Testing
 - Call `yarn` to install dependencies
+- Call `yarn compile` to compile the contracts
 - Call `yarn chain` to spin up the hardhat network
 - Open a second terminal and call `yarn test:unit`
