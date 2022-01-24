@@ -51,10 +51,15 @@ describe('Purchase', () => {
 
     it('Should revert if purchased with no funds', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
-        await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address)).to.be.revertedWith("Insufficient()");
+        await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address)).to.be.revertedWith("IncorrectAmount()");
     });
 
-    // it('Should succeed if purchased with funds', async () => {
+    it('Should revert if purchased with excess funds', async () => {
+        const { deployer, nftDeployer, nftMarket, nft } = await setup();
+        await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: 2 })).to.be.revertedWith("IncorrectAmount()");
+    });
+
+    // it('Should succeed if purchased with correct funds', async () => {
     //     const { deployer, nftDeployer, nftMarket, nft } = await setup();
     //     await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: 1 })).to.not.be.reverted;
     // });
