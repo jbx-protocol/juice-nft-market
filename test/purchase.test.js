@@ -22,7 +22,6 @@ describe('Purchase', () => {
         // Deploy nftMarket. `deployer` is the deployer/owner
         const mockTerminalV1 = await deployMockContract(deployer, rinkebyTerminalV1.abi);
         const mockTerminalDirectory = await deployMockContract(deployer, rinkebyTerminalDirectory.abi);
-        console.log(mockTerminalDirectory.address);
         await mockTerminalDirectory.mock.terminalOf
             .withArgs(PROJECT_ID)
             .returns(mockTerminalV1.address);
@@ -73,7 +72,6 @@ describe('Purchase', () => {
 
     it('Should succeed if purchased with correct funds', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
-        await nftMarket.connect(deployer).purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT });
-        // await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT })).to.not.be.reverted;
+        await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT })).to.not.be.reverted;
     });
 });
