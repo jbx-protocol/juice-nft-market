@@ -222,6 +222,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
                 // And the recipient is a project
                 if (_recipient.projectId > 0) {
                     // Get a reference to the Juicebox terminal being used.
+                    console.logAddress(msg.sender);
                     ITerminal _terminal = terminalDirectory.terminalOf(_recipient.projectId);
                     console.logAddress(address(_terminal));
                     // Project must have a terminal.
