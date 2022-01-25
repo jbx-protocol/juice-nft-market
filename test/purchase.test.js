@@ -23,7 +23,7 @@ describe('Purchase', () => {
         // Deploy nftMarket. `deployer` is the deployer/owner
         const mockTerminalV1 = await deployMockContract(deployer, rinkebyTerminalV1.abi);
         const mockTerminalDirectory = await deployMockContract(deployer, rinkebyTerminalDirectory.abi);
-        await mockTerminalDirectory.mock.terminalOf // MOCK ON THE METHOD IS NOT INITIALIZED
+        await mockTerminalDirectory.mock.terminalOf
             .withArgs(PROJECT_ID)
             .returns(mockTerminalV1.address);
 
@@ -32,7 +32,7 @@ describe('Purchase', () => {
             .returns();
 
         const nftMarketFactory = await ethers.getContractFactory('NFTMarket');
-        const nftMarket = await nftMarketFactory.deploy(mockTerminalV1.address)
+        const nftMarket = await nftMarketFactory.deploy(mockTerminalDirectory.address)
 
         // Deploy ERC721. `nftDeployer` is the deployer/owner.
         const nftFactory = await ethers.getContractFactory('ERC721', nftDeployer);
@@ -43,7 +43,7 @@ describe('Purchase', () => {
 
         // List NFT
         await nft.connect(nftDeployer).setApprovalForAll(nftMarket.address, true);
-        await nftMarket.connect(nftDeployer).list(nft.address, TOKEN_ID, AMOUNT, makeSaleReceipientArray(10000, BENEFICIARY, PROJECT_ID));
+        await nftMarket.connect(nftDeployer).list(nft.address, TOKEN_ID, AMOUNT, makeSaleReceipientArray(10000, ethers.constants.AddressZero, PROJECT_ID));
 
         return { deployer, nftDeployer, mockTerminalV1, nftMarket, nft };
     }
