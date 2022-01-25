@@ -27,13 +27,9 @@ describe('Purchase', () => {
             .withArgs(PROJECT_ID)
             .returns(mockTerminalV1.address);
 
-        // await mockTerminalV1.mock.pay
-        //     .withArgs(PROJECT_ID, BENEFICIARY, PREFER_CLAIMED_TOKENS, MEMO, {value: AMOUNT}, [])
-        //     .returns();
-        await mockJbTerminal.mock.pay
-            .withArgs(PROJECT_ID, caller.address, 0, /*preferClaimedTokens=*/ false, /*memo=*/ '', [])
+        await mockTerminalV1.mock.pay
+            .withArgs(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS)
             .returns();
-  
 
         const nftMarketFactory = await ethers.getContractFactory('NFTMarket');
         const nftMarket = await nftMarketFactory.deploy(mockTerminalV1.address)
@@ -77,6 +73,7 @@ describe('Purchase', () => {
 
     it('Should succeed if purchased with correct funds', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
-        await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT })).to.not.be.reverted;
+        await nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT });
+        // await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT })).to.not.be.reverted;
     });
 });
