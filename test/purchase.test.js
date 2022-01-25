@@ -30,7 +30,7 @@ describe('Purchase', () => {
 
         await mockTerminalV1.mock.pay
             .withArgs(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS)
-            .returns();
+            .returns(1); // number represents funding cycle ID (https://github.com/jbx-protocol/juice-contracts-v1/blob/main/contracts/TerminalV1.sol#L1081)
 
         const nftMarketFactory = await ethers.getContractFactory('NFTMarket');
         const nftMarket = await nftMarketFactory.deploy(mockTerminalDirectory.address)

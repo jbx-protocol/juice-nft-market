@@ -227,6 +227,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
                     // Project must have a terminal.
                     if (_terminal == ITerminal(address(0))) revert TerminalNotFound();
                     // Pay the terminal what this recipient is owed.
+                    console.log('calling pay');
                     _terminal.pay{value: _recipientCut}(
                         _recipient.projectId,
                         // If no beneficiary is specified, send the tokens to the msg.sender.
@@ -234,6 +235,7 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
                         _recipient.memo,
                         _recipient.preferUnstaked
                     );
+                    console.log('called pay');
                 } else {
                     // Otherwise, send the funds directly to the beneficiary.
                     Address.sendValue(_recipient.beneficiary, _recipientCut);
