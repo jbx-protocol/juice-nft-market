@@ -223,11 +223,17 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
                 if (_recipient.projectId > 0) {
                     // Get a reference to the Juicebox terminal being used.
                     ITerminal _terminal = terminalDirectory.terminalOf(_recipient.projectId);
-                    console.logAddress(address(_terminal));
                     // Project must have a terminal.
                     if (_terminal == ITerminal(address(0))) revert TerminalNotFound();
+                    
+                    // LOGS
+                    console.log('calling pay with: ');
+                    console.log('recipient project id: %s', _recipient.projectId);
+                    console.log(_recipient.beneficiary == address(0) ? msg.sender : _recipient.beneficiary);
+                    console.log(_recipient.memo);
+                    console.log(_recipient.preferUnstaked);
+
                     // Pay the terminal what this recipient is owed.
-                    console.log('calling pay');
                     _terminal.pay{value: _recipientCut}(
                         _recipient.projectId,
                         // If no beneficiary is specified, send the tokens to the msg.sender.
@@ -235,7 +241,6 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
                         _recipient.memo,
                         _recipient.preferUnstaked
                     );
-                    console.log('called pay');
                 } else {
                     // Otherwise, send the funds directly to the beneficiary.
                     Address.sendValue(_recipient.beneficiary, _recipientCut);
@@ -244,12 +249,12 @@ contract NFTMarket is IERC721Receiver, ReentrancyGuard {
         }
         // TODO Consider adding destination parameter to a `purchaseFor` method
         // Transfer NFT to buyer
-        _contract.safeTransferFrom(address(this), msg.sender, _tokenId);
+        _contract.safeTransferFrom(_owner, msg.sender, _tokenId);
 
         // Delete the recipients.
         delete recipientsOf[_owner][_contract][_tokenId];
 
-        emit Purchased(address(this), msg.sender, _contract, _tokenId, msg.value);
+        emit Purchased(_owner, msg.sender, _contract, _tokenId, msg.value);
     }
 
     /**

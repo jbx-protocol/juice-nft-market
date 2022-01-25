@@ -11,7 +11,6 @@ describe('Purchase', () => {
     //Default values
     const PROJECT_ID = 1;
     const TOKEN_ID = 1;
-    const BENEFICIARY = ethers.Wallet.createRandom().address;
     const PREFER_CLAIMED_TOKENS = false;
     const MEMO = 'memo';
     const AMOUNT = ethers.utils.parseEther('1.0');
@@ -29,7 +28,7 @@ describe('Purchase', () => {
             .returns(mockTerminalV1.address);
 
         await mockTerminalV1.mock.pay
-            .withArgs(PROJECT_ID, BENEFICIARY, MEMO, PREFER_CLAIMED_TOKENS)
+            .withArgs(PROJECT_ID, nftDeployer.address, MEMO, PREFER_CLAIMED_TOKENS)
             .returns(1); // number represents funding cycle ID (https://github.com/jbx-protocol/juice-contracts-v1/blob/main/contracts/TerminalV1.sol#L1081)
 
         const nftMarketFactory = await ethers.getContractFactory('NFTMarket');
@@ -44,7 +43,7 @@ describe('Purchase', () => {
 
         // List NFT
         await nft.connect(nftDeployer).setApprovalForAll(nftMarket.address, true);
-        await nftMarket.connect(nftDeployer).list(nft.address, TOKEN_ID, AMOUNT, makeSaleReceipientArray(10000, ethers.constants.AddressZero, PROJECT_ID));
+        await nftMarket.connect(nftDeployer).list(nft.address, TOKEN_ID, AMOUNT, makeSaleReceipientArray(10000, nftDeployer.address, PROJECT_ID));
 
         return { deployer, nftDeployer, mockTerminalV1, nftMarket, nft };
     }
@@ -64,17 +63,17 @@ describe('Purchase', () => {
 
     it('Should revert if purchased with no funds', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
-        await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address)).to.be.revertedWith("IncorrectAmount()");
+        await expect(nftMarket.connect(deployer).purchase(nft.address, 1, nftDeployer.address)).to.be.revertedWith("IncorrectAmount()");
     });
 
     it('Should revert if purchased with excess funds', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
-        await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: 2 })).to.be.revertedWith("IncorrectAmount()");
+        await expect(nftMarket.connect(deployer).purchase(nft.address, 1, nftDeployer.address, { value: ethers.utils.parseEther('2.0') })).to.be.revertedWith("IncorrectAmount()");
     });
 
     it('Should succeed if purchased with correct funds', async () => {
         const { deployer, nftDeployer, nftMarket, nft } = await setup();
-        await nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT });
+        await nftMarket.connect(deployer).purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT });
         // await expect(nftMarket.purchase(nft.address, 1, nftDeployer.address, { value: AMOUNT })).to.not.be.reverted;
     });
 });
