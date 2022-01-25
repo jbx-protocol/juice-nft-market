@@ -23,7 +23,7 @@ describe('Purchase', () => {
         // Deploy nftMarket. `deployer` is the deployer/owner
         const mockTerminalV1 = await deployMockContract(deployer, rinkebyTerminalV1.abi);
         const mockTerminalDirectory = await deployMockContract(deployer, rinkebyTerminalDirectory.abi);
-        await mockTerminalDirectory.mock.terminalOf
+        await mockTerminalDirectory.mock.terminalOf // MOCK ON THE METHOD IS NOT INITIALIZED
             .withArgs(PROJECT_ID)
             .returns(mockTerminalV1.address);
 
