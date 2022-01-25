@@ -3,6 +3,7 @@ const fs = require('fs');
 const chalk = require('chalk');
 const dotenv = require('dotenv');
 
+require('@typechain/hardhat')
 require('@nomiclabs/hardhat-etherscan');
 require('@nomiclabs/hardhat-waffle');
 require('@nomiclabs/hardhat-ethers');
